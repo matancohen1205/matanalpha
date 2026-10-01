@@ -17,6 +17,19 @@ const fmt = (n) => `${Number(n).toLocaleString('he-IL', { maximumFractionDigits:
 
 /* ---------------------------------------------------------------- Meta Cloud API */
 
+function assertSafeMediaUrl(raw) {
+  let u;
+  try { u = new URL(raw); } catch { throw new Error('BAD_MEDIA_URL'); }
+  const h = u.hostname.toLowerCase();
+  const internal = h === 'localhost' || h.endsWith('.local') || h.endsWith('.internal') || /^[\d.]+$/.test(h) || h.includes(':');
+  if (u.protocol !== 'https:' || internal || u.username || u.password) throw new Error('BAD_MEDIA_URL');
+}
+
+function safeEqual(a, b) {
+  const x = Buffer.from(String(a)), y = Buffer.from(String(b));
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
+}
+
 function createMetaClient({ phoneNumberId, token, version = 'v21.0', fetchImpl = fetch }) {
   const base = `https://graph.facebook.com/${version}`;
   const headers = { Authorization: `Bearer ${token}` };
@@ -54,7 +67,9 @@ function createMetaClient({ phoneNumberId, token, version = 'v21.0', fetchImpl =
         e.code = 'TOO_LARGE';
         throw e;
       }
-      const file = await fetchImpl(info.url, { headers });
+      // כתובת ההורדה מגיעה מתשובת Meta, ובכל זאת מאמתים אותה: HTTPS בלבד ולא כתובת פנימית (הגנת SSRF)
+      assertSafeMediaUrl(info.url);
+      const file = await fetchImpl(info.url, { headers, redirect: 'error' });
       if (!file.ok) throw new Error('media download failed');
       const buffer = Buffer.from(await file.arrayBuffer());
       if (buffer.length > MAX_MEDIA_BYTES) {
@@ -286,7 +301,7 @@ function createWhatsApp(cfg) {
 
   // ---- Webhook מ-Meta (גוף גולמי לצורך אימות חתימה) ----
   router.get('/webhook', (req, res) => {
-    if (verifyToken && req.query['hub.mode'] === 'subscribe' && req.query['hub.verify_token'] === verifyToken) {
+    if (verifyToken && req.query['hub.mode'] === 'subscribe' && typeof req.query['hub.verify_token'] === 'string' && safeEqual(req.query['hub.verify_token'], verifyToken)) {
       return res.type('text').send(String(req.query['hub.challenge'] || ''));
     }
     res.sendStatus(403);
@@ -361,4 +376,4 @@ function createWhatsApp(cfg) {
   return { router, engine, configured };
 }
 
-module.exports = { createWhatsApp, createEngine, createMetaClient, createDevClient, buildAlerts, buildReply, periodKey };
+module.exports = { assertSafeMediaUrl, createWhatsApp, createEngine, createMetaClient, createDevClient, buildAlerts, buildReply, periodKey };

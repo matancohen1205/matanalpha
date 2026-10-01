@@ -40,6 +40,18 @@
 - **שרת יחיד:** האחסון (SQLite) והמתזמן מניחים מופע אחד, ולכן לא להגדיל ליותר ממופע אחד.
 - **עדכון נתוני מס:** לעדכן את `TAX_DATA` ב-`public/js/tax-core.js` בתחילת כל שנה.
 
+## 7. רשימת אבטחה לפני פתיחה לציבור
+- [ ] **אימות דו-שלבי (2FA)** בחשבונות GitHub, Render, Stripe ו-Meta. חשבון שנפרץ עוקף כל הגנה בקוד.
+- [ ] **מפתח Stripe מוגבל:** ב-Stripe ליצור *Restricted key* עם הרשאות בלבד ל-Checkout Sessions, Customers/Subscriptions (קריאה) ו-Billing Portal, ולא להשתמש במפתח הסודי המלא.
+- [ ] `NODE_ENV=production`, `TRUST_PROXY=1`, והגדרת `PUBLIC_URL`. לוודא ש-`PRO_DEV_UNLOCK` ו-`WA_DEV` **לא** מוגדרים (האפליקציה מסרבת לעלות איתם באירוח).
+- [ ] `DATA_KEY` ו-`PRO_TOKEN_SECRET` ארוכים ואקראיים, מגובים בנפרד (מנהל סיסמאות), ומוחלפים אם נחשפו.
+- [ ] `SECURITY_CONTACT` או `SUPPORT_EMAIL` מוגדר, כדי ש-`/.well-known/security.txt` יהיה פעיל.
+- [ ] הגנת קצה (מומלץ): Cloudflare (חינמי) לפני האתר עם WAF, Bot Fight Mode, והגבלת קצב נוספת. אחרי החיבור, `TRUST_PROXY=2`.
+- [ ] ב-GitHub: להפעיל Branch protection על `master`, Secret scanning ו-Dependabot alerts.
+- [ ] לוגים: לוודא ש-Render לא שומר גופי בקשות, ולהגדיר התראה על שגיאות 5xx.
+- [ ] גיבוי תקופתי של `/data/app.db` ובדיקת שחזור.
+- [ ] בדיקת חדירות חיצונית לפני קמפיין שיווקי.
+
 ## אלטרנטיבות
 - **Fly.io / Railway:** אותו `Dockerfile` עובד. נדרש כרך שמוצמד ל-`/data` והמשתנים שברשימה למעלה.
 - **VPS:** `docker build -t tlush .` ואז `docker run -p 3000:3000 -v tlush-data:/data --env-file .env tlush`, מאחורי Caddy או Nginx עם HTTPS.

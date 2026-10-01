@@ -3,7 +3,8 @@
 const crypto = require('crypto');
 const express = require('express');
 
-const COOKIE = 'ps_pro';
+const COOKIE_PLAIN = 'ps_pro';
+const COOKIE_HOST = '__Host-ps_pro'; // בפרודקשן: קידומת __Host- מחייבת Secure, Path=/ וללא Domain
 const TOKEN_TTL_S = 7 * 24 * 3600; // אחרי שבוע בודקים מחדש מול ספק התשלומים
 
 const b64 = (b) => Buffer.from(b).toString('base64url');
@@ -55,7 +56,8 @@ function readCookie(req, name) {
  * @param {boolean} [opts.secure]    עוגייה Secure (פרודקשן)
  */
 function createBilling(opts) {
-  const { stripe, secret, priceId, publicUrl, priceLabel, devUnlock = false, secure = false } = opts;
+  const { stripe, secret, priceId, publicUrl, priceLabel, devUnlock = false, secure = false, once } = opts;
+  const COOKIE = secure ? COOKIE_HOST : COOKIE_PLAIN;
   const router = express.Router();
   router.use(express.json({ limit: '10kb' }));
 
@@ -72,11 +74,15 @@ function createBilling(opts) {
   });
 
   function setCookie(res, payload) {
-    const token = sign({ ...payload, exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_S }, secret);
+    const token = sign({ ...payload, t: 'pro', exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_S }, secret);
     res.cookie(COOKIE, token, { httpOnly: true, sameSite: 'strict', secure, maxAge: TOKEN_TTL_S * 1000, path: '/' });
   }
   const clearCookie = (res) => res.clearCookie(COOKIE, { path: '/' });
-  const getAuth = (req) => verify(readCookie(req, COOKIE), secret);
+  // אסימוני וואטסאפ וסוגים אחרים חתומים באותו סוד, ולכן מקבלים רק אסימון שסוגו pro
+  const getAuth = (req) => {
+    const p = verify(readCookie(req, COOKIE), secret);
+    return p && p.t === 'pro' ? p : null;
+  };
 
   router.get('/me', async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
@@ -127,10 +133,18 @@ function createBilling(opts) {
     if (!stripe) return res.status(503).json({ error: 'NOT_CONFIGURED' });
     if (typeof id !== 'string' || !/^cs_[A-Za-z0-9_]+$/.test(id)) return res.status(400).json({ error: 'BAD_SESSION' });
     try {
-      const s = await stripe.checkout.sessions.retrieve(id);
+      const s = await stripe.checkout.sessions.retrieve(id, { expand: ['line_items'] });
       const fresh = Date.now() / 1000 - s.created < 24 * 3600;
-      if (s.status !== 'complete' || !s.customer || !fresh) {
+      const paid = ['paid', 'no_payment_required'].includes(s.payment_status || 'paid');
+      const items = (s.line_items && s.line_items.data) || null;
+      // חייב להיות מנוי שלנו (המחיר שלנו), לא עסקה אחרת באותו חשבון Stripe
+      const ours = !priceId || !items || items.some((li) => li.price && li.price.id === priceId);
+      if (s.status !== 'complete' || !s.customer || !fresh || !paid || (s.mode && s.mode !== 'subscription') || !ours) {
         return res.status(402).json({ error: 'NOT_PAID', message: 'לא נמצא תשלום שהושלם.' });
+      }
+      // מזהה עסקה הוא "מפתח" חד-פעמי: דליפה שלו (היסטוריה, לוגים) לא מאפשרת הפעלה חוזרת
+      if (once && !once('cs:' + id)) {
+        return res.status(409).json({ error: 'ALREADY_USED', message: 'הקישור כבר נוצל. אם איבדתם גישה, פנו לשירות לקוחות.' });
       }
       setCookie(res, { cid: typeof s.customer === 'string' ? s.customer : s.customer.id });
       res.json({ pro: true });

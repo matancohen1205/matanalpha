@@ -4,10 +4,13 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { createWorker } = require('tesseract.js');
-const pdfParse = require('pdf-parse/lib/pdf-parse.js');
+const { Worker } = require('worker_threads');
 
 const MAX_PDF_PAGES = 6;
 const OCR_TIMEOUT_MS = 60_000;
+const PDF_TIMEOUT_MS = 20_000;
+const MAX_PIXELS = 25_000_000; // הגנה מפצצות דחיסה בתמונות
+const MAX_SIDE = 12_000;
 
 /** מכין תיקיית שפות מקומית (ללא הורדה מהאינטרנט בזמן ריצה) */
 function ensureLangDir() {
@@ -56,9 +59,66 @@ async function ocrImage(buf) {
   }
 }
 
-async function pdfText(buf) {
-  const data = await pdfParse(buf, { max: MAX_PDF_PAGES });
-  return data.text || '';
+/** קריאת PDF בתוך Worker מבודד עם תקרת זיכרון וזמן, שנהרג בסיום או בחריגה */
+function pdfText(buf) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(path.join(__dirname, 'pdf-worker.js'), {
+      workerData: { buf, maxPages: MAX_PDF_PAGES },
+      resourceLimits: { maxOldGenerationSizeMb: 192, maxYoungGenerationSizeMb: 32, stackSizeMb: 4 },
+    });
+    let done = false;
+    const finish = (fn, v) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      worker.terminate().catch(() => {});
+      fn(v);
+    };
+    const timer = setTimeout(() => {
+      const e = new Error('PDF_TIMEOUT');
+      e.code = 'OCR_TIMEOUT';
+      finish(reject, e);
+    }, PDF_TIMEOUT_MS);
+    worker.once('message', (m) => {
+      if (m.error) {
+        const e = new Error('PDF_INVALID');
+        e.code = 'UNSUPPORTED_TYPE';
+        finish(reject, e);
+      } else finish(resolve, m.text || '');
+    });
+    worker.once('error', () => {
+      const e = new Error('PDF_FAILED');
+      e.code = 'UNSUPPORTED_TYPE';
+      finish(reject, e);
+    });
+    worker.once('exit', () => finish(reject, Object.assign(new Error('PDF_EXIT'), { code: 'UNSUPPORTED_TYPE' })));
+  });
+}
+
+/** מימדי תמונה מהכותרת בלבד (בלי פענוח), כדי לדחות תמונות ענק לפני ה-OCR */
+function imageSize(buf) {
+  try {
+    if (buf[0] === 0x89) return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) }; // PNG
+    if (buf[0] === 0xff) { // JPEG: סריקת סמנים עד SOF
+      let i = 2;
+      while (i + 9 < buf.length) {
+        if (buf[i] !== 0xff) { i++; continue; }
+        const m = buf[i + 1];
+        if (m >= 0xc0 && m <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(m)) return { h: buf.readUInt16BE(i + 5), w: buf.readUInt16BE(i + 7) };
+        i += 2 + buf.readUInt16BE(i + 2);
+      }
+      return null;
+    }
+    if (buf.slice(0, 4).toString('latin1') === 'RIFF') { // WEBP
+      const t = buf.slice(12, 16).toString('latin1');
+      if (t === 'VP8X') return { w: 1 + buf.readUIntLE(24, 3), h: 1 + buf.readUIntLE(27, 3) };
+      if (t === 'VP8 ') return { w: buf.readUInt16LE(26) & 0x3fff, h: buf.readUInt16LE(28) & 0x3fff };
+      if (t === 'VP8L') { const b = buf.readUInt32LE(21); return { w: (b & 0x3fff) + 1, h: ((b >> 14) & 0x3fff) + 1 }; }
+    }
+  } catch {
+    /* כותרת קטועה */
+  }
+  return null;
 }
 
 /**
@@ -81,7 +141,13 @@ async function extractText(buf) {
     }
     return { text, source: 'pdf' };
   }
+  const dim = imageSize(buf);
+  if (!dim || !dim.w || !dim.h || dim.w > MAX_SIDE || dim.h > MAX_SIDE || dim.w * dim.h > MAX_PIXELS) {
+    const e = new Error('IMAGE_DIMENSIONS');
+    e.code = 'UNSUPPORTED_TYPE';
+    throw e;
+  }
   return { text: await ocrImage(buf), source: 'ocr' };
 }
 
-module.exports = { extractText, sniffType, ensureLangDir };
+module.exports = { extractText, sniffType, ensureLangDir, imageSize };

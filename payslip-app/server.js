@@ -19,9 +19,19 @@ const PORT = Number(process.env.PORT) || 3000;
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
 const MAX_TEXT_CHARS = 40_000;
 const MAX_CONCURRENT_JOBS = 2;
+const isProd = process.env.NODE_ENV === 'production';
 
 const app = express();
 app.disable('x-powered-by');
+
+// ---------- הקשחה כללית ----------
+// דגלי פיתוח (פתיחת Pro בלי תשלום, נתיב סימולציה) אסור שיגיעו לסביבת אירוח אמיתית
+if ((process.env.PRO_DEV_UNLOCK === '1' || process.env.WA_DEV === '1') &&
+    (isProd || process.env.RENDER || process.env.FLY_APP_NAME || process.env.RAILWAY_ENVIRONMENT || process.env.KUBERNETES_SERVICE_HOST)) {
+  throw new Error('PRO_DEV_UNLOCK / WA_DEV must not be enabled in a hosted or production environment');
+}
+app.set('query parser', 'simple'); // בלי אובייקטים מקוננים מפרמטרי URL (חוסם קלט מבני זדוני)
+app.set('etag', false);
 // מאחורי reverse proxy (Nginx / Cloudflare / PaaS) כדי שמגבלת הקצב תזהה IP אמיתי
 if (process.env.TRUST_PROXY) app.set('trust proxy', Number(process.env.TRUST_PROXY) || 1);
 
@@ -40,6 +50,10 @@ app.use(
         frameAncestors: ["'none'"],
         baseUri: ["'self'"],
         formAction: ["'self'"],
+        frameSrc: ["'none'"],
+        manifestSrc: ["'self'"],
+        mediaSrc: ["'none'"],
+        workerSrc: ["'none'"],
         ...(process.env.NODE_ENV === 'production' ? { upgradeInsecureRequests: [] } : {}),
       },
     },
@@ -51,6 +65,37 @@ app.use(
 app.use((req, res, next) => {
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
   next();
+});
+
+
+// ---------- הגנת CSRF/Origin לכל בקשה משנה-מצב ל-API ----------
+// דפדפן מודרני שולח Sec-Fetch-Site ו-Origin. בקשה חוצת-אתר נדחית. ה-webhook של Meta (ללא דפדפן) מוחרג וחתום בנפרד.
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+app.use('/api', (req, res, next) => {
+  if (SAFE_METHODS.has(req.method) || req.path === '/whatsapp/webhook') return next();
+  const site = req.headers['sec-fetch-site'];
+  if (site && !['same-origin', 'none'].includes(site)) return res.status(403).json({ error: 'CROSS_SITE', message: 'הבקשה נדחתה.' });
+  const origin = req.headers.origin;
+  if (origin) {
+    let host;
+    try { host = new URL(origin).host; } catch { host = null; }
+    if (!host || host !== req.headers.host) return res.status(403).json({ error: 'BAD_ORIGIN', message: 'הבקשה נדחתה.' });
+  }
+  next();
+});
+// בקשות API שנתקעות לא תופסות משאבים לנצח
+app.use('/api', (req, res, next) => {
+  res.setTimeout(req.path === '/analyze' ? 90_000 : 30_000, () => { if (!res.headersSent) res.status(503).json({ error: 'TIMEOUT' }); });
+  next();
+});
+
+// נתיב לדיווח על פרצות (RFC 9116), נבנה מכתובת הקשר שהוגדרה
+app.get('/.well-known/security.txt', (req, res) => {
+  const contact = process.env.SECURITY_CONTACT || process.env.SUPPORT_EMAIL;
+  if (!contact) return res.status(404).type('text').send('Not configured');
+  res.type('text/plain; charset=utf-8').send(
+    `Contact: mailto:${contact}\nExpires: ${new Date(Date.now() + 365 * 864e5).toISOString()}\nPreferred-Languages: he, en\nCanonical: ${billingConfig.publicUrl}/.well-known/security.txt\n`
+  );
 });
 
 app.get('/healthz', (req, res) => res.type('text').send('ok'));
@@ -75,10 +120,20 @@ const limiterMsg = { error: 'RATE_LIMIT', message: 'יותר מדי בקשות. 
 // כללי: נטען בכל כניסה לדף (מילון, סטטוס מנוי)
 api.use(rateLimit({ windowMs: 10 * 60 * 1000, limit: 300, standardHeaders: true, legacyHeaders: false, message: limiterMsg }));
 // קפדני: פעולות כבדות (סריקה, השוואה, תשלום)
-const heavy = rateLimit({ windowMs: 10 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false, message: limiterMsg });
+const heavy = rateLimit({ windowMs: 10 * 60 * 1000, limit: Number(process.env.RATE_LIMIT_HEAVY) || 20, standardHeaders: true, legacyHeaders: false, message: limiterMsg });
+
+// ---------- וואטסאפ (Meta Cloud API) ----------
+const waEnv = process.env;
+const waReal = !!(waEnv.WA_ACCESS_TOKEN && waEnv.WA_PHONE_NUMBER_ID && waEnv.WA_BUSINESS_NUMBER);
+if (isProd && waReal && (!(waEnv.DATA_KEY || waEnv.WA_DATA_KEY) || !waEnv.WA_APP_SECRET || !waEnv.WA_VERIFY_TOKEN || !(waEnv.DB_PATH || waEnv.WA_DB_PATH))) {
+  throw new Error('DATA_KEY, WA_APP_SECRET, WA_VERIFY_TOKEN and DB_PATH are required when WhatsApp is enabled in production');
+}
+const dbPath = waEnv.DB_PATH || waEnv.WA_DB_PATH || ':memory:';
+const dataKey = waEnv.DATA_KEY || waEnv.WA_DATA_KEY;
+if (isProd && dbPath === ':memory:') console.warn('WARNING: DB_PATH is not set, so support tickets are not persisted');
+const waStore = createStore({ path: dbPath, key: dataKey });
 
 // ---------- מנוי ----------
-const isProd = process.env.NODE_ENV === 'production';
 const stripeKey = process.env.STRIPE_SECRET_KEY;
 let tokenSecret = process.env.PRO_TOKEN_SECRET;
 if (!tokenSecret) {
@@ -93,22 +148,13 @@ const billingConfig = {
   priceLabel: process.env.PRICE_LABEL || '19.90 ₪ לחודש',
   devUnlock: !isProd && process.env.PRO_DEV_UNLOCK === '1',
   secure: isProd,
+  once: (key) => waStore.useNonce(key), // מפתחות חד-פעמיים (מזהה עסקה)
 };
 const billingRef = { current: createBilling(billingConfig) };
 app.setBilling = (opts) => { billingRef.current = createBilling({ ...billingConfig, ...opts }); }; // לבדיקות
 api.use('/billing', (req, res, next) => (req.method === 'POST' && req.path !== '/dev-activate' ? heavy : (q, r, n) => n())(req, res, () => billingRef.current.router(req, res, next)));
 const requirePro = (req, res, next) => billingRef.current.requirePro(req, res, next);
 
-// ---------- וואטסאפ (Meta Cloud API) ----------
-const waEnv = process.env;
-const waReal = !!(waEnv.WA_ACCESS_TOKEN && waEnv.WA_PHONE_NUMBER_ID && waEnv.WA_BUSINESS_NUMBER);
-if (isProd && waReal && (!(waEnv.DATA_KEY || waEnv.WA_DATA_KEY) || !waEnv.WA_APP_SECRET || !waEnv.WA_VERIFY_TOKEN || !(waEnv.DB_PATH || waEnv.WA_DB_PATH))) {
-  throw new Error('DATA_KEY, WA_APP_SECRET, WA_VERIFY_TOKEN and DB_PATH are required when WhatsApp is enabled in production');
-}
-const dbPath = waEnv.DB_PATH || waEnv.WA_DB_PATH || ':memory:';
-const dataKey = waEnv.DATA_KEY || waEnv.WA_DATA_KEY;
-if (isProd && dbPath === ':memory:') console.warn('WARNING: DB_PATH is not set, so support tickets are not persisted');
-const waStore = createStore({ path: dbPath, key: dataKey });
 function buildWhatsApp(over = {}) {
   return createWhatsApp({
     store: waStore,
@@ -221,12 +267,17 @@ app.use('/api', api);
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'NOT_FOUND' }));
 
+// 404 כללי: בלי להחזיר את הנתיב שהתבקש (מונע השתקפות תוכן) ובלי פרטי שרת
+app.use((req, res) => res.status(404).type('text/plain; charset=utf-8').send('Not found'));
+
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
-    const message =
-      err.code === 'LIMIT_FILE_SIZE' ? 'הקובץ גדול מדי (עד 8MB).' : 'הבקשה אינה תקינה.';
-    return res.status(413).json({ error: err.code, message });
+    const tooBig = err.code === 'LIMIT_FILE_SIZE';
+    return res.status(tooBig ? 413 : 400).json({ error: err.code, message: tooBig ? 'הקובץ גדול מדי (עד 8MB).' : 'הבקשה אינה תקינה.' });
+  }
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'BAD_JSON', message: 'הבקשה אינה תקינה.' });
   }
   if (err.type === 'entity.too.large') {
     return res.status(413).json({ error: 'TOO_LARGE', message: 'הטקסט ארוך מדי.' });
@@ -237,7 +288,13 @@ app.use((err, req, res, next) => {
 
 if (require.main === module) {
   ensureLangDir();
-  app.listen(PORT, () => console.log(`Payslip app listening on http://localhost:${PORT}`));
+  const server = app.listen(PORT, () => console.log(`Payslip app listening on http://localhost:${PORT}`));
+  // הגנה מ-slowloris וחיבורים תקועים
+  server.headersTimeout = 20_000;
+  server.requestTimeout = 100_000;
+  server.keepAliveTimeout = 5_000;
+  server.maxHeadersCount = 60;
+  server.maxConnections = 1000;
   setInterval(() => waStore.cleanup(), 24 * 3600 * 1000).unref(); // ניקוי יומי של נתונים זמניים ופניות ישנות
   if (waEnv.WA_REMINDER_TEMPLATE && waRef.current.configured) {
     // תזמון יומי של תזכורות. מניחים מופע שרת יחיד.
