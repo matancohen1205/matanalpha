@@ -57,6 +57,8 @@ function createAccounts({ store, mailer, mailFrom, secret, publicUrl, secure = f
     ok: db.prepare('UPDATE accounts SET fail_count = 0, locked_until = 0, last_login = ? WHERE id = ?'),
     verified: db.prepare('UPDATE accounts SET verified = 1 WHERE id = ?'),
     setAuth: db.prepare('UPDATE accounts SET auth_hash = ?, wrapped_pw = ?, fail_count = 0, locked_until = 0 WHERE id = ?'),
+    setRec: db.prepare('UPDATE accounts SET wrapped_rec = ? WHERE id = ?'),
+    vDel: db.prepare('DELETE FROM vaults WHERE account_id = ?'),
     setCid: db.prepare('UPDATE accounts SET cid_enc = ? WHERE id = ?'),
     del: db.prepare('DELETE FROM accounts WHERE id = ?'),
     sessIns: db.prepare('INSERT INTO sessions (token_hash, account_id, created_at, expires_at) VALUES (?,?,?,?)'),
@@ -115,7 +117,7 @@ function createAccounts({ store, mailer, mailFrom, secret, publicUrl, secure = f
     const info = q.insert.run(emailHash(email), store.encrypt(email), hashAuth(b.authKey), JSON.stringify(b.wrappedPw), JSON.stringify(b.wrappedRec), now());
     const id = Number(info.lastInsertRowid);
     startSession(res, id);
-    const sent = await sendMail(email, 'אימות כתובת האימייל בחשבון', `ברוכים הבאים!\n\nלאימות הכתובת לחצו (בתוקף 24 שעות):\n${publicUrl}/account.html?verify=${mailToken('verify', id, 24 * 60)}\n`);
+    const sent = await sendMail(email, 'אימות כתובת האימייל בחשבון', `ברוכים הבאים!\n\nלאימות הכתובת לחצו (בתוקף 24 שעות):\n${publicUrl}/login.html?verify=${mailToken('verify', id, 24 * 60)}\n`);
     res.json({ ok: true, verified: false, mailSent: sent });
   });
 
@@ -194,7 +196,7 @@ function createAccounts({ store, mailer, mailFrom, secret, publicUrl, secure = f
 
   router.post('/resend-verification', requireSession, async (req, res) => {
     if (req.acc.verified) return res.json({ ok: true, already: true });
-    const sent = await sendMail(emailOf(req.acc), 'אימות כתובת האימייל בחשבון', `לאימות הכתובת לחצו (בתוקף 24 שעות):\n${publicUrl}/account.html?verify=${mailToken('verify', req.acc.id, 24 * 60)}\n`);
+    const sent = await sendMail(emailOf(req.acc), 'אימות כתובת האימייל בחשבון', `לאימות הכתובת לחצו (בתוקף 24 שעות):\n${publicUrl}/login.html?verify=${mailToken('verify', req.acc.id, 24 * 60)}\n`);
     res.json({ ok: sent, message: sent ? 'נשלח.' : 'שליחת מייל אינה זמינה כרגע.' });
   });
 
@@ -205,7 +207,7 @@ function createAccounts({ store, mailer, mailFrom, secret, publicUrl, secure = f
     res.json({ ok: true, message: 'אם קיים חשבון בכתובת הזו, נשלח אליה קישור לאיפוס (בתוקף 30 דקות).' });
     const acc = q.byEmail.get(emailHash(email));
     if (!acc || store.bump('forgot:' + email) > 3) return;
-    await sendMail(email, 'איפוס סיסמה', `התקבלה בקשה לאיפוס הסיסמה.\nתצטרכו את מפתח השחזור שקיבלתם בהרשמה. בלעדיו אי אפשר לפתוח את הנתונים המוצפנים.\n${publicUrl}/account.html?reset=${mailToken('reset', acc.id, 30)}\n\nאם לא ביקשתם, התעלמו מההודעה.\n`);
+    await sendMail(email, 'איפוס סיסמה', `התקבלה בקשה לאיפוס הסיסמה בחשבון שלכם ב"תלוש בעברית".\n\nלאיפוס לחצו על הקישור (בתוקף 30 דקות, שימוש חד-פעמי):\n${publicUrl}/login.html?reset=${mailToken('reset', acc.id, 30)}\n\nכדי לשמור על ההיסטוריה המוצפנת תצטרכו את מפתח השחזור שקיבלתם בהרשמה. אם אין לכם אותו, אפשר לאפס את הסיסמה אבל ההיסטוריה השמורה תימחק.\n\nאם לא ביקשתם, התעלמו מההודעה. הסיסמה שלכם לא תשתנה.\n`);
   });
 
   // מחזיר את המפתח העטוף במפתח השחזור, כדי שהדפדפן יפתח אותו ויעטוף מחדש בסיסמה חדשה
@@ -221,8 +223,12 @@ function createAccounts({ store, mailer, mailFrom, secret, publicUrl, secure = f
     const p = readToken(b.token, 'reset');
     const acc = p && q.byId.get(p.aid);
     if (!acc || !validAuthKey(b.authKey) || !validSealed(b.wrappedPw)) return res.status(400).json({ error: 'BAD_TOKEN', message: 'הקישור אינו תקף או שפג תוקפו.' });
+    // איפוס ללא מפתח שחזור: הכספת הישנה אינה ניתנת לפתיחה ולכן נמחקת, ומפתח שחזור חדש נקבע
+    const wipe = b.wipe === true;
+    if (wipe && !validSealed(b.wrappedRec)) return res.status(400).json({ error: 'BAD_MATERIAL', message: 'חומר ההצפנה אינו תקין.' });
     if (!store.useNonce('rst:' + p.nonce)) return res.status(409).json({ error: 'ALREADY_USED', message: 'הקישור כבר נוצל.' });
     q.setAuth.run(hashAuth(b.authKey), JSON.stringify(b.wrappedPw), acc.id);
+    if (wipe) { q.setRec.run(JSON.stringify(b.wrappedRec), acc.id); q.vDel.run(acc.id); }
     q.sessDelAll.run(acc.id); // ניתוק כל המכשירים
     q.verified.run(acc.id); // הגעה לקישור במייל מוכיחה בעלות
     res.json({ ok: true });

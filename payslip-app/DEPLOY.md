@@ -55,3 +55,12 @@
 ## אלטרנטיבות
 - **Fly.io / Railway:** אותו `Dockerfile` עובד. נדרש כרך שמוצמד ל-`/data` והמשתנים שברשימה למעלה.
 - **VPS:** `docker build -t tlush .` ואז `docker run -p 3000:3000 -v tlush-data:/data --env-file .env tlush`, מאחורי Caddy או Nginx עם HTTPS.
+
+## שליחת מייל (שחזור סיסמה, אימות כתובת, שחזור מנוי)
+בלי `SMTP_URL` האתר לא שולח מיילים (מסכי "שכחתי סיסמה" ו"שחזור מנוי" יציגו שהשירות אינו זמין). כדי להפעיל:
+1. פתחו חשבון אצל ספק SMTP (למשל Brevo, Mailgun, Amazon SES, Postmark, או Gmail עם סיסמת אפליקציה) ואמתו את הדומיין או כתובת השולח.
+2. ב-Render הגדירו:
+   - `SMTP_URL` בפורמט `smtps://USER:PASSWORD@HOST:465` (או `smtp://USER:PASSWORD@HOST:587` עם STARTTLS). תווים מיוחדים בסיסמה מקודדים (URL-encoding).
+   - `MAIL_FROM` למשל `תלוש בעברית <no-reply@your-domain.com>`. הכתובת חייבת להיות מאומתת אצל הספק, אחרת המייל יידחה או ייפול לספאם.
+   - `PUBLIC_URL` לכתובת הציבורית של האתר, כי הקישורים במייל נבנים ממנה.
+3. בעלייה השרת בודק חיבור ומדפיס בלוג `SMTP: connected` או `SMTP: connection failed`. אחר כך בקשו איפוס סיסמה למשתמש בדיקה וודאו שהמייל הגיע.

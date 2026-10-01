@@ -7,14 +7,33 @@
   var state = { email: null, vaultKey: null, data: null, version: 0, mailAvailable: false };
 
   var VIEWS = ['v-guest', 'v-recovery', 'v-locked', 'v-home'];
-  function show(id) { VIEWS.forEach(function (v) { $(v).hidden = v !== id; }); }
+  var DEFAULT_LEAD = $('acc-lead').textContent;
+  function show(id) {
+    VIEWS.forEach(function (v) { $(v).hidden = v !== id; });
+    if (id !== 'v-guest') { $('acc-title').textContent = 'החשבון שלי'; $('acc-lead').textContent = DEFAULT_LEAD; document.title = 'החשבון שלי | תלוש בעברית'; }
+  }
   function status(msg, err) { var b = $('acc-status'); b.textContent = msg || ''; b.className = 'status-line' + (err ? ' err' : ''); b.hidden = !msg; }
   function err(id, msg) { var e = $(id); e.textContent = msg || ''; e.hidden = !msg; }
   function busy(btn, on, label) { btn.disabled = on; if (label) btn.dataset.label = btn.dataset.label || btn.textContent, btn.textContent = on ? label : btn.dataset.label; }
   var EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
   /* ---------- טאבים ---------- */
+  var PATH_MODE = /\/(signup|login)(\.html)?$/.exec(location.pathname);
+  var entry = PATH_MODE ? PATH_MODE[1] : 'login';
+  var MODE_TEXT = {
+    login: { title: 'התחברות', lead: 'התחברו כדי לפתוח את ההיסטוריה המוצפנת שלכם.', url: '/login.html' },
+    register: { title: 'יצירת חשבון', lead: 'פתחו חשבון חינם ושמרו היסטוריית תלושים בכספת מוצפנת בדפדפן שלכם.', url: '/signup.html' },
+  };
+  function setGuestHeading(v) {
+    var m = MODE_TEXT[v];
+    if (!m || document.getElementById('v-guest').hidden) return;
+    $('acc-title').textContent = m.title;
+    $('acc-lead').textContent = m.lead;
+    document.title = m.title + ' | תלוש בעברית';
+    if (location.pathname !== m.url && !qs.get('reset')) history.replaceState(null, '', m.url);
+  }
   function guestView(v) {
+    setGuestHeading(v);
     ['login', 'register', 'forgot', 'reset'].forEach(function (n) { $('f-' + n).hidden = n !== v; });
     $('t-login').setAttribute('aria-selected', String(v === 'login'));
     $('t-register').setAttribute('aria-selected', String(v === 'register'));
@@ -63,12 +82,19 @@
   });
   $('rk-print').addEventListener('click', function () { window.print(); });
   $('rk-next').addEventListener('click', async function () {
+    if (state.afterWipe) {
+      state.afterWipe = false; state.vaultKey = null; A.clearKey();
+      show('v-guest'); guestView('login');
+      status('הסיסמה אופסה. אפשר להתחבר עם הסיסמה החדשה.');
+      return;
+    }
     try {
       var r = await A.api('PUT', '/api/account/vault', { version: 0, blob: await V.encryptJson(state.vaultKey, { v: 1, snapshots: [], rights: null }) });
       if (!r.ok && r.status !== 409) throw new Error('save');
     } catch (x) { status('לא הצלחנו ליצור את הכספת. נסו שוב.', true); return; }
     status('החשבון נוצר.');
     enterHome();
+    if (window.PSPromo) PSPromo.show({ title: 'כבר נרשמתם, לא תהנו מכל האפשרויות?', desc: 'החשבון שלכם מוכן. עם Pro אפשר להשוות עד 12 חודשים, לקבל התראות על שינויים חריגים ולהמשיך לעקוב בוואטסאפ.' });
   });
 
   /* ---------- התחברות ---------- */
@@ -124,18 +150,38 @@
     $('f-msg').textContent = r.body.message || 'שגיאה.';
   });
 
-  var resetToken = qs.get('reset'), resetInfo = null;
+  var resetToken = qs.get('reset'), resetInfo = null, wipeMode = false;
+  $('x-nokey').addEventListener('click', function () {
+    wipeMode = !wipeMode;
+    $('x-key-field').hidden = wipeMode;
+    $('x-wipe-note').hidden = !wipeMode;
+    $('x-nokey').textContent = wipeMode ? 'יש לי מפתח שחזור' : 'אין לי את מפתח השחזור';
+  });
   $('f-reset').addEventListener('submit', async function (e) {
     e.preventDefault();
     err('x-err', '');
     var pass = $('x-pass').value;
     if (!goodPassword(pass)) return err('x-err', 'הסיסמה החדשה צריכה להכיל לפחות 10 תווים.');
+    if (wipeMode) {
+      try {
+        var nm = await V.createAccountMaterial(pass, resetInfo.email);
+        var wr = await A.api('POST', '/api/account/reset', { token: resetToken, authKey: nm.authKey, wrappedPw: nm.wrappedPw, wrappedRec: nm.wrappedRec, wipe: true });
+        if (!wr.ok) return err('x-err', wr.body.message || 'האיפוס נכשל.');
+        history.replaceState(null, '', '/login.html');
+        state.afterWipe = true; state.vaultKey = null;
+        $('rk-text').textContent = nm.recoveryKey;
+        $('rk-ok').checked = false; $('rk-next').disabled = true;
+        show('v-recovery');
+        status('הסיסמה אופסה וההיסטוריה הישנה נמחקה. שמרו את מפתח השחזור החדש.');
+      } catch (x) { err('x-err', 'אירעה שגיאה בהצפנה. נסו דפדפן עדכני.'); }
+      return;
+    }
     try {
       var vk = await V.unwrapWithRecovery($('x-key').value, resetInfo.wrappedRec);
       var rw = await V.rewrapForNewPassword(pass, resetInfo.email, vk);
       var r = await A.api('POST', '/api/account/reset', { token: resetToken, authKey: rw.authKey, wrappedPw: rw.wrappedPw });
       if (!r.ok) return err('x-err', r.body.message || 'האיפוס נכשל.');
-      history.replaceState(null, '', '/account.html');
+      history.replaceState(null, '', '/login.html');
       guestView('login');
       status('הסיסמה אופסה והנתונים נשמרו. אפשר להתחבר עם הסיסמה החדשה.');
     } catch (x) { err('x-err', 'מפתח השחזור שגוי.'); }
@@ -254,7 +300,7 @@
   async function bootstrap() {
     var me = await A.me(true);
     state.mailAvailable = !!me.mailAvailable;
-    if (!me.loggedIn) { show('v-guest'); guestView('login'); return; }
+    if (!me.loggedIn) { show('v-guest'); guestView(entry === 'signup' ? 'register' : 'login'); return; }
     state.email = me.email;
     if (!A.getKey()) { show('v-locked'); return; }
     enterHome();
@@ -263,7 +309,7 @@
   (async function init() {
     if (qs.get('verify')) {
       var r = await A.api('POST', '/api/account/verify', { token: qs.get('verify') });
-      history.replaceState(null, '', '/account.html');
+      history.replaceState(null, '', location.pathname);
       status(r.ok ? 'האימייל אומת. תודה!' : (r.body.message || 'האימות נכשל.'), !r.ok);
     }
     if (resetToken) {

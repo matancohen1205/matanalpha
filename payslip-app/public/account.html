@@ -48,8 +48,8 @@
   </header>
 
   <main id="main" class="container tool">
-    <h1>החשבון שלי</h1>
-    <p class="lead muted">שמרו היסטוריית תלושים ופרטים נוספים בכספת <strong>מוצפנת בדפדפן שלכם</strong>. השרת שומר רק מידע מוצפן, ואין לנו דרך לקרוא אותו.</p>
+    <h1 id="acc-title">החשבון שלי</h1>
+    <p class="lead muted" id="acc-lead">שמרו היסטוריית תלושים ופרטים נוספים בכספת <strong>מוצפנת בדפדפן שלכם</strong>. השרת שומר רק מידע מוצפן, ואין לנו דרך לקרוא אותו.</p>
     <div id="acc-status" class="status-line" role="status" hidden></div>
 
     <!-- לא מחובר -->
@@ -85,9 +85,10 @@
 
       <form id="f-reset" class="acc-form" novalidate hidden>
         <h2>איפוס סיסמה</h2>
-        <div class="field"><label for="x-key">מפתח השחזור</label><input id="x-key" type="text" dir="ltr" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XX" autocomplete="off" maxlength="60"></div>
+        <div class="field" id="x-key-field"><label for="x-key">מפתח השחזור</label><input id="x-key" type="text" dir="ltr" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XX" autocomplete="off" maxlength="60"></div>
+        <div class="draft-note" id="x-wipe-note" hidden>איפוס ללא מפתח שחזור: הסיסמה תתחלף, אבל ההיסטוריה המוצפנת השמורה בחשבון תימחק ולא ניתן יהיה לשחזר אותה. תקבלו מפתח שחזור חדש.</div>
         <div class="field"><label for="x-pass">סיסמה חדשה (לפחות 10 תווים)</label><input id="x-pass" type="password" autocomplete="new-password" maxlength="200"></div>
-        <div class="form-actions"><button class="btn" type="submit">איפוס</button></div>
+        <div class="form-actions"><button class="btn" type="submit">איפוס</button><button class="link-btn" type="button" id="x-nokey">אין לי את מפתח השחזור</button></div>
         <div id="x-err" class="alert" role="alert" hidden></div>
       </form>
     </section>

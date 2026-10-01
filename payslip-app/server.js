@@ -101,6 +101,11 @@ app.get('/.well-known/security.txt', (req, res) => {
 
 app.get('/healthz', (req, res) => res.type('text').send('ok'));
 
+app.get(['/login', '/login.html', '/signup', '/signup.html'], (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache');
+  res.sendFile(path.join(__dirname, 'public', 'account.html'));
+});
+
 app.use(
   express.static(path.join(__dirname, 'public'), {
     extensions: ['html'],
@@ -315,6 +320,15 @@ app.use((err, req, res, next) => {
 if (require.main === module) {
   ensureLangDir();
   const server = app.listen(PORT, () => console.log(`Payslip app listening on http://localhost:${PORT}`));
+  if (billingConfig.mailer) {
+    // בדיקת חיבור ל-SMTP בעלייה: כשל מופיע בלוג מיד ולא רק כשמשתמש מבקש איפוס
+    billingConfig.mailer.verify().then(
+      () => console.log('SMTP: connected, password recovery emails are enabled'),
+      (e) => console.error('SMTP: connection failed, emails will NOT be delivered:', e.code || e.message)
+    );
+  } else {
+    console.warn('SMTP_URL is not set: password recovery and verification emails are disabled');
+  }
   // הגנה מ-slowloris וחיבורים תקועים
   server.headersTimeout = 20_000;
   server.requestTimeout = 100_000;

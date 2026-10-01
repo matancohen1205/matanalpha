@@ -185,3 +185,84 @@ test('קישור מנוי Pro לחשבון משחזר Pro בהתחברות', asy
   assert.strictEqual(check.json.pro, true);
   assert.strictEqual((await req('POST', '/api/account/unlink-subscription', { body: {}, cookie: cookieOf(l) })).status, 200);
 });
+
+// שרת SMTP מינימלי שקולט הודעות, כדי לבדוק שליחה אמיתית דרך nodemailer ולא רק mock
+function smtpSink() {
+  const net = require('node:net');
+  const messages = [];
+  const srv = net.createServer((sock) => {
+    let data = false, buf = '', cur = { rcpt: [] };
+    sock.write('220 sink ESMTP\r\n');
+    sock.on('data', (chunk) => {
+      buf += chunk.toString('utf8');
+      for (;;) {
+        if (data) {
+          const end = buf.indexOf('\r\n.\r\n');
+          if (end < 0) return;
+          cur.raw = buf.slice(0, end);
+          buf = buf.slice(end + 5);
+          data = false; messages.push(cur); cur = { rcpt: [] };
+          sock.write('250 queued\r\n');
+          continue;
+        }
+        const nl = buf.indexOf('\r\n');
+        if (nl < 0) return;
+        const line = buf.slice(0, nl); buf = buf.slice(nl + 2);
+        if (/^EHLO/i.test(line)) sock.write('250-sink\r\n250 8BITMIME\r\n');
+        else if (/^MAIL/i.test(line)) sock.write('250 ok\r\n');
+        else if (/^RCPT/i.test(line)) { cur.rcpt.push(line.slice(8).replace(/[<>]/g, '')); sock.write('250 ok\r\n'); }
+        else if (/^DATA/i.test(line)) { data = true; sock.write('354 go\r\n'); }
+        else if (/^QUIT/i.test(line)) { sock.write('221 bye\r\n'); sock.end(); return; }
+        else sock.write('250 ok\r\n');
+      }
+    });
+  });
+  return new Promise((resolve) => srv.listen(0, '127.0.0.1', () => resolve({ srv, messages, port: srv.address().port })));
+}
+const decodeMail = (raw) => {
+  const body = raw.split(/\r\n\r\n/).slice(1).join('\r\n\r\n');
+  if (/Content-Transfer-Encoding: base64/i.test(raw)) return Buffer.from(body.replace(/\s+/g, ''), 'base64').toString('utf8');
+  if (/quoted-printable/i.test(raw)) return body.replace(/=\r\n/g, '').replace(/=([0-9A-F]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
+  return body;
+};
+
+test('מייל איפוס סיסמה נשלח בפועל דרך SMTP, ואיפוס ללא מפתח שחזור מוחק את הכספת הישנה', async () => {
+  const sink = await smtpSink();
+  const transport = require('nodemailer').createTransport({ host: '127.0.0.1', port: sink.port, secure: false, ignoreTLS: true });
+  app.setAccounts({ mailer: transport, mailFrom: 'no-reply@example.test' });
+  try {
+    const { m, cookie } = await register('smtp@example.com', 'smtp-password-12345');
+    await req('PUT', '/api/account/vault', { body: { version: 0, blob: await V.encryptJson(m.vaultKey, { old: 'history' }) }, cookie });
+    const f = await req('POST', '/api/account/forgot', { body: { email: 'smtp@example.com' } });
+    assert.strictEqual(f.status, 200);
+    for (let i = 0; i < 40 && !sink.messages.some((x) => /reset/i.test(decodeMail(x.raw))); i++) await new Promise((r) => setTimeout(r, 50));
+    const mail = sink.messages.find((x) => /reset=/.test(decodeMail(x.raw)));
+    assert.ok(mail, 'מייל האיפוס לא התקבל בשרת ה-SMTP');
+    assert.deepStrictEqual(mail.rcpt, ['smtp@example.com']);
+    assert.match(mail.raw, /From: .*no-reply@example\.test/);
+    const url = decodeMail(mail.raw).match(/https?:\/\/\S+\/login\.html\?reset=([\w.-]+)/);
+    assert.ok(url, 'הקישור חייב להוביל למסך ההתחברות');
+
+    // איפוס ללא מפתח שחזור: סיסמה חדשה, כספת ישנה נמחקת, מפתח שחזור חדש
+    const token = url[1];
+    const nm = await V.createAccountMaterial('after-reset-pass-99', 'smtp@example.com');
+    const done = await req('POST', '/api/account/reset', { body: { token, authKey: nm.authKey, wrappedPw: nm.wrappedPw, wrappedRec: nm.wrappedRec, wipe: true } });
+    assert.strictEqual(done.status, 200);
+    assert.strictEqual((await login('smtp@example.com', 'smtp-password-12345')).status, 401);
+    const nl = await login('smtp@example.com', 'after-reset-pass-99');
+    assert.strictEqual(nl.status, 200);
+    const vault = await req('GET', '/api/account/vault', { cookie: cookieOf(nl) });
+    assert.strictEqual(vault.json.blob, null); // הכספת הישנה נמחקה
+  } finally {
+    app.setAccounts({});
+    sink.srv.close();
+  }
+});
+
+test('מסכי /login ו-/signup נטענים', async () => {
+  for (const p of ['/login', '/login.html', '/signup', '/signup.html']) {
+    const r = await req('GET', p);
+    assert.strictEqual(r.status, 200, p);
+    assert.match(r.text, /id="f-register"/);
+  }
+});

@@ -29,6 +29,7 @@ const homeMain = between(index, '<main id="main">', '</main>');
 const LEGAL = ['privacy', 'terms', 'accessibility'];
 const TOOLS = ['calculator', 'credits', 'compare', 'pricing', 'whatsapp', 'about', 'contact', 'rights'];
 const VIEWS_ALL = LEGAL.concat(TOOLS);
+const ACCOUNT_VIEWS = ['login', 'signup'];
 const legal = LEGAL.map((n) => {
   const art = between(pub(n + '.html'), '<article class="prose">', '</article>');
   return `<section class="container legal-view" id="view-${n}" hidden>
@@ -40,6 +41,12 @@ const tools = TOOLS.map((n) => {
     .replace(/<\/main>$/, '</div>');
   return `<section class="container tool-view" id="view-${n}" hidden>${main}</section>`;
 }).join('\n');
+
+const accountMain = between(pub('account.html'), '<main id="main" class="container tool">', '</main>')
+  .replace('<main id="main" class="container tool">', '<div class="tool">')
+  .replace(/<\/main>$/, '</div>')
+  .split('id="r-err"').join('id="ra-err"');
+const accountView = `<section class="container tool-view" id="view-account" hidden>${accountMain}</section>`;
 
 let appJs = pub('js/app.js');
 appJs = patch(
@@ -57,6 +64,35 @@ const shim = `
   var G = (function () { var module = { exports: {} }; ${src('glossary.js')}\n return module.exports; })();
   var A = (function () { var module = { exports: {} }; var require = function () { return G; }; ${src('analyzer.js')}\n return module.exports; })();
   var C = (function () { var module = { exports: {} }; ${src('compare.js')}\n return module.exports; })();
+  var acct = { users: {}, current: null, vaults: {} };
+  function accountApi(url, o) {
+    var b = {}; try { b = o.body ? JSON.parse(o.body) : {}; } catch (e) {}
+    var m = (o.method || 'GET').toUpperCase(), ep = url.slice('/api/account/'.length);
+    var u = acct.current && acct.users[acct.current];
+    if (ep === 'me') return json(200, u ? { loggedIn: true, email: u.email, verified: false, subscriptionLinked: false, mailAvailable: true } : { loggedIn: false, mailAvailable: true });
+    if (ep === 'register') {
+      var em = String(b.email || '').toLowerCase();
+      if (acct.users[em]) return json(409, { message: 'כבר קיים חשבון בכתובת הזו. אפשר להתחבר או לאפס סיסמה.' });
+      acct.users[em] = { email: em, authKey: b.authKey, wrappedPw: b.wrappedPw, wrappedRec: b.wrappedRec };
+      acct.current = em; return json(200, { ok: true, verified: false, mailSent: false });
+    }
+    if (ep === 'login') {
+      var lu = acct.users[String(b.email || '').toLowerCase()];
+      if (!lu || lu.authKey !== b.authKey) return json(401, { message: 'האימייל או הסיסמה שגויים.' });
+      acct.current = lu.email; return json(200, { ok: true, wrappedPw: lu.wrappedPw, pro: false });
+    }
+    if (ep === 'logout') { acct.current = null; return json(200, { ok: true }); }
+    if (ep === 'forgot') return json(200, { ok: true, message: 'בתצוגה המקדימה לא נשלח מייל. בגרסה האמיתית נשלח קישור לאיפוס (בתוקף 30 דקות).' });
+    if (!u) return json(401, { message: 'יש להתחבר.' });
+    if (ep === 'vault' && m === 'GET') { var v = acct.vaults[u.email]; return json(200, v ? { version: v.version, blob: v.blob } : { version: 0, blob: null }); }
+    if (ep === 'vault' && m === 'PUT') {
+      var cur = acct.vaults[u.email] || { version: 0 };
+      if (cur.version !== b.version) return json(409, { message: 'הכספת עודכנה במכשיר אחר.' });
+      acct.vaults[u.email] = { version: cur.version + 1, blob: b.blob }; return json(200, { ok: true, version: cur.version + 1 });
+    }
+    if (ep === 'delete') { delete acct.users[u.email]; acct.current = null; return json(200, { ok: true }); }
+    return json(200, { ok: true });
+  }
   var proOn = false, waLinked = false, waLinking = false, waPolls = 0;
   var realFetch = window.fetch ? window.fetch.bind(window) : null;
   function json(status, body) {
@@ -78,6 +114,7 @@ const shim = `
       var lg = url.slice(6, 8);
       return json(200, I18N[lg] || { d: {}, p: [] });
     }
+    if (typeof url === 'string' && url.indexOf('/api/account/') === 0) return accountApi(url, opts || {});
     if (url === '/api/site-config') return json(200, { supportEmail: '', supportWhatsapp: '', supportHours: '', topics: {} });
     if (url === '/api/contact') return json(200, { ok: true, ticket: 'T-DEMO' });
     if (url === '/api/billing/me') return json(200, { pro: proOn, configured: false, devUnlock: true, priceLabel: '19.90 ₪ לחודש', priceLabelYearly: '199 ₪ לשנה', plans: [{ id: 'monthly', label: '19.90 ₪ לחודש' }, { id: 'yearly', label: '199 ₪ לשנה' }] });
@@ -95,15 +132,17 @@ const shim = `
   };
 
   /* ניווט בין הדף הראשי לדפים המשפטיים באמצעות #עוגן */
-  var VIEWS = ${JSON.stringify(VIEWS_ALL)};
+  var VIEWS = ${JSON.stringify(VIEWS_ALL.concat(['account']))};
   var home = document.getElementById('home-view');
   function route() {
     var id = (location.hash || '').replace('#', '').split('?')[0];
-    var isLegal = VIEWS.indexOf(id) >= 0;
+    var vid = (id === 'login' || id === 'signup') ? 'account' : id;
+    var isLegal = VIEWS.indexOf(vid) >= 0;
     home.hidden = isLegal;
-    VIEWS.forEach(function (v) { document.getElementById('view-' + v).hidden = v !== id; });
+    VIEWS.forEach(function (v) { document.getElementById('view-' + v).hidden = v !== vid; });
+    if ((id === 'login' || id === 'signup') && window.PS_ACCOUNT_ROUTE) window.PS_ACCOUNT_ROUTE(id);
     if (id === 'whatsapp' && window.PS_WA_REFRESH) window.PS_WA_REFRESH();
-    var target = isLegal ? document.getElementById('view-' + id) : id ? document.getElementById(id) : null;
+    var target = isLegal ? document.getElementById('view-' + vid) : id ? document.getElementById(id) : null;
     if (target) target.scrollIntoView(); else window.scrollTo(0, 0);
   }
   window.addEventListener('hashchange', route);
@@ -117,9 +156,11 @@ let body = `${header}
   ${homeMain}
 </div>
 <main class="container-wrap">${legal}
-${tools}</main>
+${tools}
+${accountView}</main>
 ${footer}`;
 VIEWS_ALL.forEach((n) => { body = body.split(`href="/${n}.html"`).join(`href="#${n}"`); });
+body = body.split('href="/account.html"').join('href="#login"');
 body = patch(body, 'href="/#', 'href="#');
 const mark = 'data:image/svg+xml;base64,' + fs.readFileSync(path.join(root, 'public', 'logo-mark.svg')).toString('base64');
 body = body.split('src="/logo-mark.svg"').join(`src="${mark}"`);
@@ -176,6 +217,19 @@ ${body}
 <script>${pub('js/rights-core.js')}</script>
 <script>${pub('js/rights.js')}</script>
 <script>${pub('js/credits.js')}</script>
+<script>${pub('js/vault-crypto.js')}</script>
+<script>${pub('js/account-client.js')}</script>
+<script>${(() => {
+  let a = pub('js/account.js').split('r-err').join('ra-err');
+  a = a.split("/\\/(signup|login)(\\.html)?$/.exec(location.pathname)").join("/^#(signup|login)/.exec(location.hash)");
+  a = a.split("url: '/login.html'").join("url: '#login'").split("url: '/signup.html'").join("url: '#signup'");
+  a = a.split("if (location.pathname !== m.url && !qs.get('reset')) history.replaceState(null, '', m.url);").join("if (location.hash !== m.url) history.replaceState(null, '', m.url);");
+  a = a.split("location.href = '/compare.html'").join("location.hash = '#compare'");
+  a = a.split("history.replaceState(null, '', '/login.html')").join("history.replaceState(null, '', '#login')");
+  a = a.split("history.replaceState(null, '', location.pathname)").join("history.replaceState(null, '', '#login')");
+  return a + "\nwindow.PS_ACCOUNT_ROUTE = function (id) { if (!document.getElementById('v-guest').hidden) { var t = document.getElementById(id === 'signup' ? 't-register' : 't-login'); if (t) t.click(); } };";
+})()}</script>
+
 <script>${pub('js/compare.js').split("href: '/pricing.html'").join("href: '#pricing'")}</script>
 <script>${pub('js/wa.js').split("window.open(r.body.url, '_blank', 'noopener');").join('').split("href: '/pricing.html'").join("href: '#pricing'")}</script>
 <script>${pub('js/contact.js').split("'/api/contact'").join("'/api/contact'")}</script>
