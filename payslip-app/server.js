@@ -47,6 +47,8 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/healthz', (req, res) => res.type('text').send('ok'));
+
 app.use(
   express.static(path.join(__dirname, 'public'), {
     extensions: ['html'],

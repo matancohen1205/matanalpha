@@ -1,0 +1,6 @@
+node_modules
+.tessdata
+dist
+.git
+*.log
+.env
