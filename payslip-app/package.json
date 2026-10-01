@@ -1,0 +1,27 @@
+{
+  "name": "payslip-explainer",
+  "version": "0.1.0",
+  "description": "הסבר מאובטח לתלוש שכר",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@tesseract.js-data/eng": "^1.0.0",
+    "@tesseract.js-data/heb": "^1.0.0",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "multer": "^2.4.0",
+    "pdf-parse": "^1.1.1",
+    "tesseract.js": "^7.0.0"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  }
+}

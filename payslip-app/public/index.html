@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="he" dir="rtl" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>תלוש בעברית | הסבר מאובטח לתלוש השכר שלכם</title>
+  <meta name="description" content="העלו תלוש שכר וקבלו הסבר בעברית פשוטה על כל סעיף, בצורה מאובטחת וללא שמירה.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">דלגו לתוכן הראשי</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/" aria-label="דף הבית">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#3b5bdb"/><path d="M9 7h10l5 5v13a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" fill="#fff"/><path d="M11 15h10M11 19h10M11 23h6" stroke="#3b5bdb" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span>תלוש בעברית</span>
+      </a>
+      <nav class="nav" aria-label="ניווט ראשי">
+        <a class="nav-link" href="/#how">איך זה עובד</a>
+        <a class="nav-link" href="/#glossary">מילון מונחים</a>
+        <a class="nav-link" href="/#faq">שאלות נפוצות</a>
+        <button id="theme-toggle" class="icon-btn" type="button" aria-label="מעבר למצב כהה" aria-pressed="false">
+          <svg class="theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          <svg class="theme-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">🔒 הקובץ נמחק מיד אחרי הקריאה</span>
+          <h1>מבינים סוף סוף מה כתוב בתלוש השכר</h1>
+          <p class="lead">מעלים תלוש, אנחנו סורקים אותו בצורה מאובטחת ומסבירים בעברית פשוטה כל סעיף: מה הוא אומר, ולמה הוא מופיע דווקא אצלכם החודש.</p>
+          <ul class="trust-list">
+            <li><span class="tick" aria-hidden="true">✓</span><span>התלוש מעובד בזיכרון בלבד ולא נשמר בשרת, ללא חשבון וללא הרשמה.</span></li>
+            <li><span class="tick" aria-hidden="true">✓</span><span>החיבור מוצפן, ואנחנו לא משתמשים בעוגיות מעקב או פרסום.</span></li>
+            <li><span class="tick" aria-hidden="true">✓</span><span>אפשר גם להדביק טקסט, או לנסות עם תלוש לדוגמה בלי להעלות כלום.</span></li>
+          </ul>
+        </div>
+
+        <div id="upload" class="card" aria-live="polite">
+          <div id="upload-card">
+            <div class="tabs" role="tablist" aria-label="שיטת הזנה">
+              <button class="tab" role="tab" id="tab-file" data-mode="file" aria-selected="true" aria-controls="panel-file" type="button">העלאת קובץ</button>
+              <button class="tab" role="tab" id="tab-text" data-mode="text" aria-selected="false" aria-controls="panel-text" type="button">הדבקת טקסט</button>
+            </div>
+
+            <div id="panel-file" role="tabpanel" aria-labelledby="tab-file">
+              <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="בחירת קובץ תלוש שכר להעלאה">
+                <svg class="dz-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+                <strong>גררו לכאן את התלוש או לחצו לבחירה</strong>
+                <span class="muted">PDF, JPG, PNG או WEBP, עד 8MB</span>
+              </div>
+              <input id="file-input" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" hidden>
+              <div id="file-chip-box"></div>
+            </div>
+
+            <div id="panel-text" role="tabpanel" aria-labelledby="tab-text" hidden>
+              <label for="paste-text" class="sr-only">טקסט התלוש</label>
+              <textarea id="paste-text" placeholder="הדביקו כאן את שורות התלוש, למשל: שכר יסוד 12,000.00" maxlength="40000"></textarea>
+            </div>
+
+            <label class="consent">
+              <input id="consent" type="checkbox">
+              <span>קראתי ואני מסכים/ה ל<a href="/terms.html" target="_blank" rel="noopener">תנאי השימוש</a> ול<a href="/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a>, ומאשר/ת עיבוד חד-פעמי של התלוש לצורך הסבר.</span>
+            </label>
+
+            <div class="form-actions">
+              <button id="analyze-btn" class="btn" type="button" disabled>סריקה והסבר התלוש</button>
+              <button id="demo-btn" class="btn btn-ghost" type="button">נסו עם תלוש לדוגמה</button>
+            </div>
+            <div id="error-box" class="alert" role="alert" hidden></div>
+          </div>
+
+          <div id="loader" class="loader" hidden role="status">
+            <div class="spinner" aria-hidden="true"></div>
+            <strong>מעבדים את התלוש בצורה מאובטחת…</strong>
+            <ol id="steps" class="steps"></ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="results" class="section" hidden aria-labelledby="results-title">
+      <div class="container">
+        <div class="section-head">
+          <h2 id="results-title" tabindex="-1">התלוש שלכם, מוסבר</h2>
+        </div>
+        <div id="results-body"></div>
+      </div>
+    </section>
+
+    <section id="how" class="section">
+      <div class="container">
+        <h2>איך זה עובד</h2>
+        <div class="grid-3">
+          <div class="card step-card"><div class="num">1</div><h3>מעלים תלוש</h3><p class="muted">PDF או תמונה. הקובץ נשלח בהצפנה ומעובד בזיכרון בלבד.</p></div>
+          <div class="card step-card"><div class="num">2</div><h3>סריקה חכמה</h3><p class="muted">קריאת הטקסט בעברית (OCR) וזיהוי כל סעיף וסכום בתלוש.</p></div>
+          <div class="card step-card"><div class="num">3</div><h3>הסבר לכל סעיף</h3><p class="muted">מה זה, למה זה אצלכם, תרשים אינטראקטיבי והערות על דברים שכדאי לבדוק.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="glossary" class="section">
+      <div class="container">
+        <div class="section-head">
+          <div><h2>מילון מונחי תלוש שכר</h2><p class="muted">לא רוצים להעלות כלום? אפשר פשוט לחפש מונח.</p></div>
+        </div>
+        <div class="toolbar">
+          <input id="glossary-search" class="search" type="search" placeholder="חיפוש מונח…" aria-label="חיפוש במילון">
+          <div id="glossary-chips" class="chips" role="group" aria-label="סינון מילון"></div>
+        </div>
+        <div id="glossary-list"></div>
+      </div>
+    </section>
+
+    <section id="faq" class="section">
+      <div class="container">
+        <h2>שאלות נפוצות</h2>
+        <details class="faq"><summary>האם התלוש שלי נשמר?</summary><p>לא. הקובץ מעובד בזיכרון השרת בלבד, ונמחק מיד עם סיום הקריאה. איננו שומרים תלושים, טקסט שחולץ או תוצאות ניתוח.</p></details>
+        <details class="faq"><summary>מי יכול לראות את התלוש?</summary><p>אף אחד. אין חשבונות משתמש, אין מסד נתונים, ואין צד שלישי שמקבל את התוכן. פרטים נוספים במדיניות הפרטיות.</p></details>
+        <details class="faq"><summary>האם הניתוח מדויק?</summary><p>הזיהוי אוטומטי, ולכן ייתכנו טעויות בעיקר בתמונות לא ברורות. אפשר לתקן כל סכום ידנית. אין כאן ייעוץ מקצועי, ובכל ספק מומלץ לפנות למחלקת השכר.</p></details>
+        <details class="faq"><summary>מה לעשות עם PDF סרוק?</summary><p>אם ה-PDF הוא סריקה ללא טקסט, צלמו מסך או שמרו אותו כתמונה (JPG/PNG) והעלו שוב.</p></details>
+        <details class="faq"><summary>האם האתר נגיש?</summary><p>כן. יש כפתור נגישות בפינה עם הגדלת טקסט, ניגודיות, גופן קריא ועוד, וכן מצב כהה ובהיר.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© <span id="year">2025</span> תלוש בעברית. ההסברים כלליים ואינם ייעוץ מקצועי.</span>
+      <nav class="footer-links" aria-label="קישורים משפטיים">
+        <a href="/privacy.html">מדיניות פרטיות</a>
+        <a href="/terms.html">תנאי שימוש</a>
+        <a href="/accessibility.html">הצהרת נגישות</a>
+      </nav>
+    </div>
+  </footer>
+  <script src="/js/common.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/year.js"></script>
+</body>
+</html>

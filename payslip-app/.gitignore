@@ -1,0 +1,4 @@
+node_modules/
+.tessdata/
+*.log
+.env
