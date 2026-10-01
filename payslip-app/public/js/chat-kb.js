@@ -154,6 +154,32 @@
     },
   ];
 
+
+  /** מילות מפתח בשפות נוספות (אנגלית, רוסית, ערבית) כדי שהעוזר יבין שאלות גם בהן */
+  var EXTRA_KEYS = {
+    upload: ['upload', 'how to upload', 'how does it work', 'how to use', 'scan', 'get started', 'start', 'загрузить', 'как загрузить', 'как работает', 'как пользоваться', 'сканировать', 'начать', 'رفع', 'كيف أرفع', 'كيف يعمل', 'كيف أستخدم', 'فحص', 'ابدأ'],
+    formats: ['format', 'file type', 'file size', 'image', 'photo', 'screenshot', 'формат', 'тип файла', 'размер файла', 'фото', 'изображение', 'صيغة', 'نوع الملف', 'حجم الملف', 'صورة'],
+    unreadable: ['wrong amount', 'not recognized', 'not recognised', 'cant read', 'cannot read', 'misread', 'correct amount', 'неверная сумма', 'не распознал', 'не читает', 'ошибка распознавания', 'исправить сумму', 'مبلغ خاطئ', 'لم يتعرف', 'لا يقرأ', 'تصحيح المبلغ'],
+    privacy: ['privacy', 'secure', 'safe', 'security', 'stored', 'delete my data', 'personal data', 'encryption', 'конфиденциальность', 'безопасно', 'безопасность', 'хранится', 'удалить данные', 'личные данные', 'шифрование', 'خصوصية', 'آمن', 'أمان', 'يحفظ', 'حذف بياناتي', 'تشفير'],
+    pro: ['pro', 'subscription', 'plan', 'premium', 'upgrade', "what's included", 'подписка', 'тариф', 'что входит', 'премиум', 'اشتراك', 'ما الذي يشمل', 'مدفوع'],
+    billing: ['cancel', 'cancel subscription', 'billing', 'charged', 'payment', 'refund', 'invoice', 'receipt', 'credit card', 'отменить', 'отмена подписки', 'оплата', 'списали', 'возврат', 'счёт', 'чек', 'карта', 'إلغاء', 'إلغاء الاشتراك', 'دفع', 'خصم', 'استرداد', 'فاتورة', 'بطاقة'],
+    whatsapp: ['whatsapp', 'bot', 'alerts', 'notifications', 'connect whatsapp', 'ватсап', 'вотсап', 'бот', 'оповещения', 'уведомления', 'واتساب', 'بوت', 'تنبيهات'],
+    calc: ['calculator', 'net', 'gross', 'calculate', 'how much will i get', 'raise', 'калькулятор', 'нетто', 'брутто', 'рассчитать', 'сколько получу', 'حاسبة', 'صافي', 'إجمالي', 'احسب', 'كم سأتلقى'],
+    credits: ['tax credit', 'credit points', 'points', 'form 101', 'children', 'degree', 'налоговые баллы', 'баллы', 'форма 101', 'дети', 'степень', 'نقاط الائتمان', 'نقاط', 'نموذج 101', 'أطفال', 'شهادة'],
+    account: ['account', 'sign up', 'register', 'log in', 'login', 'vault', 'recovery key', 'forgot password', 'reset password', 'password', 'пароль', 'كلمة المرور', 'history', 'аккаунт', 'регистрация', 'войти', 'хранилище', 'ключ восстановления', 'забыл пароль', 'сброс пароля', 'история', 'حساب', 'تسجيل', 'دخول', 'خزنة', 'مفتاح الاسترجاع', 'نسيت كلمة المرور', 'سجل'],
+    rights: ['vacation', 'holiday', 'recuperation', 'sick days', 'seniority', 'rights', 'reminder', 'reminders', 'calendar', 'severance', 'отпуск', 'больничные', 'восстановление', 'стаж', 'права', 'напоминание', 'напоминания', 'календарь', 'إجازة', 'استجمام', 'أيام مرض', 'أقدمية', 'حقوق', 'تذكير', 'تذكيرات', 'تقويم'],
+    compare: ['compare', 'comparison', 'between months', 'trends', 'anomalies', 'сравнить', 'сравнение', 'по месяцам', 'динамика', 'аномалии', 'مقارنة', 'قارن', 'بين الأشهر', 'اتجاهات'],
+    a11y: ['accessibility', 'accessible', 'larger text', 'text size', 'contrast', 'screen reader', 'доступность', 'увеличить текст', 'размер текста', 'контраст', 'экранный диктор', 'إمكانية الوصول', 'تكبير النص', 'حجم النص', 'تباين', 'قارئ الشاشة'],
+    theme: ['dark mode', 'light mode', 'dark', 'theme', 'тёмная тема', 'темная тема', 'светлая тема', 'тема', 'الوضع الداكن', 'الوضع الفاتح', 'داكن'],
+    accuracy: ['accurate', 'accuracy', 'reliable', 'legal advice', 'accountant', 'liability', 'точность', 'точно', 'надёжно', 'юридическая консультация', 'бухгалтер', 'دقيق', 'دقة', 'موثوق', 'استشارة قانونية', 'محاسب'],
+    glossary: ['glossary', 'terms', "don't understand", 'dont understand', 'словарь', 'термины', 'не понимаю', 'قاموس', 'مصطلحات', 'لا أفهم'],
+    about: ['who are you', 'about', 'about us', 'company', 'кто вы', 'о вас', 'о нас', 'компания', 'من أنتم', 'من نحن', 'عن الموقع'],
+    human: ['human', 'agent', 'representative', 'customer service', 'support', 'contact', 'contact us', 'email', 'phone', 'bug', 'problem', 'complaint', 'оператор', 'человек', 'поддержка', 'служба поддержки', 'связаться', 'контакты', 'почта', 'телефон', 'ошибка', 'жалоба', 'نائب', 'ممثل', 'خدمة العملاء', 'دعم', 'اتصال', 'تواصل', 'بريد', 'هاتف', 'مشكلة', 'شكوى'],
+    hello: ['hello', 'hi', 'hey', 'good morning', 'привет', 'здравствуйте', 'добрый день', 'مرحبا', 'أهلا', 'السلام عليكم', 'صباح الخير'],
+    thanks: ['thanks', 'thank you', 'great', 'cool', 'спасибо', 'благодарю', 'отлично', 'شكرا', 'شكرًا', 'ممتاز'],
+  };
+  INTENTS.forEach(function (it) { if (EXTRA_KEYS[it.id]) it.keys = it.keys.concat(EXTRA_KEYS[it.id]); });
+
   /* ---------------- נרמול והתאמה ---------------- */
 
   function normalize(s) {
@@ -170,6 +196,7 @@
     return normalize(s).split(' ').filter(Boolean);
   }
   function stem(t) {
+    if (t.length > 4 && t.slice(0, 2) === 'ال') return t.slice(2); // ערבית: ה' הידיעה
     return t.length > 3 && PREFIX.test(t) ? t.slice(1) : t;
   }
   function stemmedSet(s) {

@@ -25,3 +25,13 @@ test('בדיקת סוג קובץ לפי תוכן', () => {
   assert.strictEqual(sniffType(Buffer.from('%PDF-1.7 aaaaaaaa')), 'pdf');
   assert.strictEqual(sniffType(Buffer.from('MZ not an image at all')), null);
 });
+
+test('סכום שלילי בתלוש נקרא כניכוי חיובי, וקיצורי קה"ש ודמי חופשה מזוהים', () => {
+  const { analyzePayslip } = require('../src/analyzer');
+  const r = analyzePayslip('מס הכנסה\t\t\t-1,480.00\nקה"ש עובד 378.00\nקה"ש מעסיק 7.5% 900.00\nדמי חופשה 1,200.00');
+  const by = Object.fromEntries(r.items.map((i) => [i.id, i.amount]));
+  assert.strictEqual(by.income_tax, 1480);
+  assert.strictEqual(by.study_fund_employee, 378);
+  assert.strictEqual(by.study_fund_employer, 900);
+  assert.strictEqual(by.vacation_pay, 1200);
+});

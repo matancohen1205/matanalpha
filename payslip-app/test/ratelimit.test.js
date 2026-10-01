@@ -26,3 +26,11 @@ test('הגבלת קצב על פעולות כבדות', async () => {
   assert.ok(limited > 0, 'rate limit never triggered');
 });
 
+
+test('מגבלת קצב לחשבונות נפרדת ממסלולי הסריקה', async () => {
+  // אחרי שמגבלת הסריקה נוצלה (הבדיקה הקודמת), התחברות עדיין מגיעה לשרת ולא חסומה
+  for (let i = 0; i < 30; i++) await post(server, '/api/analyze-text', { text: 'שכר יסוד 12000' });
+  assert.strictEqual(await post(server, '/api/analyze-text', { text: 'x' }), 429);
+  const login = await post(server, '/api/account/login', { email: 'a@b.co', authKey: 'x' });
+  assert.strictEqual(login, 401);
+});

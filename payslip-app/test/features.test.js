@@ -174,3 +174,35 @@ test('טופס יצירת קשר: ולידציה, מלכודת בוטים, שמ�
     server.close();
   }
 });
+
+test('SEO: robots.txt, sitemap.xml, canonical ו-Open Graph מוזרקים עם כתובת האתר', async () => {
+  const http = require('node:http');
+  const app = require('../server');
+  const srv = app.listen(0);
+  const get = (p) => new Promise((resolve, reject) => http.get({ port: srv.address().port, path: p }, (res) => { let b = ''; res.on('data', (c) => (b += c)); res.on('end', () => resolve({ status: res.statusCode, text: b })); }).on('error', reject));
+  try {
+    const robots = await get('/robots.txt');
+    assert.match(robots.text, /Disallow: \/api\//);
+    const map = await get('/sitemap.xml');
+    assert.match(map.text, /<loc>http[^<]*\/pricing\.html<\/loc>/);
+    assert.doesNotMatch(map.text, /account\.html|login|signup/);
+    const page = await get('/pricing.html');
+    assert.doesNotMatch(page.text, /%ORIGIN%|%PATH%/);
+    assert.match(page.text, /rel="canonical" href="http[^"]*\/pricing\.html"/);
+    assert.match(page.text, /og:image" content="http[^"]*\/img\/og\.png"/);
+    assert.match((await get('/login')).text, /name="robots" content="noindex"/);
+  } finally { srv.close(); }
+});
+
+test('עוזר מבוסס כללים מבין שאלות באנגלית, רוסית וערבית', () => {
+  const kb = require('../public/js/chat-kb.js');
+  const cases = [
+    ['how do I upload a payslip', 'upload'], ['is it secure?', 'privacy'], ['как отменить подписку', 'billing'],
+    ['كيف أرفع قسيمة', 'upload'], ['ما هي أيام الإجازة', 'rights'], ['сколько стоит подписка', 'pro'], ['dark mode', 'theme'],
+  ];
+  for (const [q, id] of cases) {
+    const r = kb.match(q, []);
+    assert.strictEqual(r.type === 'kb' ? r.intent.id : r.type, id, q);
+  }
+  assert.strictEqual(kb.match('asdfgh', []).type, 'none');
+});

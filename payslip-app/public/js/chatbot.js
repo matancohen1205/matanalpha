@@ -28,8 +28,8 @@
   var human = h('a', { class: 'chat-human', href: KB.URL.contact, text: '💬 שירות לקוחות' });
   var closeBtn = h('button', { class: 'icon-btn chat-x', type: 'button', 'aria-label': 'סגירת הצ\'אט', text: '✕' });
   var panel = h('section', { class: 'chat-panel', id: 'chat-panel', role: 'dialog', 'aria-label': 'עוזר האתר', dir: 'rtl', lang: 'he', hidden: 'hidden' }, [
-    h('header', {}, [h('div', {}, [h('strong', { text: 'עוזר האתר' }), h('small', { text: 'עונה על שאלות שימוש. לא מחליף ייעוץ מקצועי.' })]), closeBtn]),
-    list, h('div', {}, [h('p', { class: 'chat-ai-note muted small', id: 'chat-ai-note', hidden: 'hidden', text: 'העוזר פועל בבינה מלאכותית. ההודעות נשלחות לספק AI לצורך מענה ואינן נשמרות אצלנו. אל תכתבו פרטים אישיים.' }), form]), h('footer', {}, [human, h('a', { href: KB.URL.privacy, text: 'פרטיות' })]),
+    h('header', { role: 'group' }, [h('div', {}, [h('strong', { text: 'עוזר האתר' }), h('small', { text: 'עונה על שאלות שימוש. לא מחליף ייעוץ מקצועי.' })]), closeBtn]),
+    list, h('div', {}, [h('p', { class: 'chat-ai-note muted small', id: 'chat-ai-note', hidden: 'hidden', text: 'העוזר פועל בבינה מלאכותית. ההודעות נשלחות לספק AI לצורך מענה ואינן נשמרות אצלנו. אל תכתבו פרטים אישיים.' }), form]), h('footer', { role: 'group' }, [human, h('a', { href: KB.URL.privacy, text: 'פרטיות' })]),
   ]);
   document.body.append(panel, fab, hint);
 

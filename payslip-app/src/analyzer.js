@@ -102,7 +102,7 @@ function analyzePayslip(rawText) {
       title: entry.title,
       what: entry.what,
       why: entry.why,
-      amount,
+      amount: amount !== null && entry.type !== 'info' ? Math.abs(amount) : amount, // מינוס בתלוש מציין ניכוי, לא סכום שלילי
       line: line.slice(0, 160),
     });
   }

@@ -48,6 +48,12 @@ FOOTER = '''<footer class="site-footer">
   </footer>'''
 
 HEAD_TAGS = '''<meta name="theme-color" content="#1f7a6d">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="תלוש בעברית">
+  <meta property="og:locale" content="he_IL">
+  <meta property="og:image" content="%ORIGIN%/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="%ORIGIN%%PATH%">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -60,8 +66,15 @@ for f in glob.glob(os.path.join(root, '*.html')):
     s = re.sub(r'<footer class="site-footer">.*?</footer>', lambda m: FOOTER, s, flags=re.S)
     # תגיות head: אייקונים, manifest וצבע דפדפן
     s = re.sub(r'\s*<link rel="icon"[^>]*>', '', s)
+    s = re.sub(r'\s*<meta property="og:[^>]*>|\s*<meta name="twitter:[^>]*>|\s*<link rel="canonical"[^>]*>', '', s)
     s = re.sub(r'\s*<meta name="theme-color"[^>]*>|\s*<link rel="manifest"[^>]*>|\s*<link rel="apple-touch-icon"[^>]*>', '', s)
     s = s.replace('<link rel="stylesheet" href="/css/style.css">', HEAD_TAGS + '\n  <link rel="stylesheet" href="/css/style.css">', 1)
+    t = re.search(r'<title>(.*?)</title>', s, re.S)
+    d = re.search(r'<meta name="description" content="([^"]*)"', s)
+    if t and d:
+        s = s.replace('<meta property="og:type"', '<meta property="og:title" content="%s">\n  <meta property="og:description" content="%s">\n  <meta property="og:type"' % (t.group(1).strip(), d.group(1)), 1)
+    if os.path.basename(f) in ('account.html',) and 'name="robots"' not in s:
+        s = s.replace('<meta name="color-scheme"', '<meta name="robots" content="noindex">\n  <meta name="color-scheme"', 1)
     # סקריפטים משותפים בכל דף
     if '/js/util.js' not in s:
         s = s.replace('<script src="/js/common.js"></script>', '<script src="/js/util.js"></script>\n  <script src="/js/common.js"></script>')

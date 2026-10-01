@@ -80,7 +80,7 @@
   panel.setAttribute('aria-label', 'תפריט נגישות');
   panel.hidden = true;
 
-  var head = document.createElement('header');
+  var head = document.createElement('header'); head.setAttribute('role', 'group');
   var h = document.createElement('h2');
   h.textContent = 'נגישות';
   var close = document.createElement('button');
@@ -131,7 +131,7 @@
     grid.appendChild(b);
   });
 
-  var foot = document.createElement('footer');
+  var foot = document.createElement('footer'); foot.setAttribute('role', 'group');
   var reset = mkBtn('איפוס הגדרות', 'btn btn-ghost btn-sm');
   var statement = document.createElement('a');
   statement.href = '/accessibility.html';

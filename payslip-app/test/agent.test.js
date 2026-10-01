@@ -3,6 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const http = require('node:http');
 process.env.RATE_LIMIT_HEAVY = '200';
+process.env.RATE_LIMIT_AUTH = '500';
 process.env.AGENT_RATE_LIMIT = '1000';
 const app = require('../server');
 

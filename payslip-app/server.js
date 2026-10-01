@@ -1,5 +1,6 @@
 'use strict';
 
+const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
@@ -102,9 +103,30 @@ app.get('/.well-known/security.txt', (req, res) => {
 
 app.get('/healthz', (req, res) => res.type('text').send('ok'));
 
-app.get(['/login', '/login.html', '/signup', '/signup.html'], (req, res) => {
+// ---------- דפי HTML: הזרקת כתובת האתר (canonical ו-Open Graph), robots ו-sitemap ----------
+const SITE_ORIGIN = (() => { try { return new URL(process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`).origin; } catch { return ''; } })();
+const PUBLIC_DIR = path.join(__dirname, 'public');
+const pageSrc = {};
+function sendPage(res, file, urlPath) {
+  pageSrc[file] = pageSrc[file] || fs.readFileSync(path.join(PUBLIC_DIR, file), 'utf8');
   res.setHeader('Cache-Control', 'no-cache');
-  res.sendFile(path.join(__dirname, 'public', 'account.html'));
+  res.type('html').send(pageSrc[file].split('%ORIGIN%').join(SITE_ORIGIN).split('%PATH%').join(urlPath));
+}
+const HTML_PAGES = fs.readdirSync(PUBLIC_DIR).filter((f) => f.endsWith('.html')).map((f) => f.slice(0, -5));
+app.get('/', (req, res) => sendPage(res, 'index.html', '/'));
+for (const name of HTML_PAGES) {
+  app.get([`/${name}.html`, `/${name}`], (req, res) => sendPage(res, `${name}.html`, `/${name}.html`));
+}
+app.get(['/login', '/login.html'], (req, res) => sendPage(res, 'account.html', '/login.html'));
+app.get(['/signup', '/signup.html'], (req, res) => sendPage(res, 'account.html', '/signup.html'));
+
+const NO_INDEX = new Set(['account']);
+app.get('/robots.txt', (req, res) => {
+  res.type('text').send(`User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /account.html\nDisallow: /login.html\nDisallow: /signup.html\n${SITE_ORIGIN ? `Sitemap: ${SITE_ORIGIN}/sitemap.xml\n` : ''}`);
+});
+app.get('/sitemap.xml', (req, res) => {
+  const urls = ['/'].concat(HTML_PAGES.filter((n) => n !== 'index' && !NO_INDEX.has(n)).map((n) => `/${n}.html`));
+  res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${SITE_ORIGIN}${u}</loc></url>`).join('\n')}\n</urlset>\n`);
 });
 
 app.use(
@@ -127,6 +149,7 @@ const limiterMsg = { error: 'RATE_LIMIT', message: 'יותר מדי בקשות. 
 // כללי: נטען בכל כניסה לדף (מילון, סטטוס מנוי)
 api.use(rateLimit({ windowMs: 10 * 60 * 1000, limit: 300, standardHeaders: true, legacyHeaders: false, message: limiterMsg }));
 // קפדני: פעולות כבדות (סריקה, השוואה, תשלום)
+const authLimiter = rateLimit({ windowMs: 10 * 60 * 1000, limit: Number(process.env.RATE_LIMIT_AUTH) || 30, standardHeaders: true, legacyHeaders: false, message: limiterMsg }); // התחברות/הרשמה/איפוס, בנפרד ממסלולי הסריקה
 const heavy = rateLimit({ windowMs: 10 * 60 * 1000, limit: Number(process.env.RATE_LIMIT_HEAVY) || 20, standardHeaders: true, legacyHeaders: false, message: limiterMsg });
 
 // ---------- וואטסאפ (Meta Cloud API) ----------
@@ -235,7 +258,7 @@ function buildAccounts(over = {}) {
 }
 const accountsRef = { current: buildAccounts() };
 app.setAccounts = (over) => { accountsRef.current = buildAccounts(over); return accountsRef.current; }; // לבדיקות
-api.use('/account', (req, res, next) => (req.method === 'POST' ? heavy : (q, r, n) => n())(req, res, () => accountsRef.current.router(req, res, next)));
+api.use('/account', (req, res, next) => (req.method === 'POST' ? authLimiter : (q, r, n) => n())(req, res, () => accountsRef.current.router(req, res, next)));
 
 const supportRef = { current: buildSupport() };
 app.setSupport = (over) => { supportRef.current = buildSupport(over); return supportRef.current; }; // לבדיקות

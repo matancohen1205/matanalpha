@@ -7,6 +7,14 @@
   <meta name="description" content="העלו כמה תלושים והשוו בין חודשים: מה השתנה בברוטו, בנטו, במס ובפנסיה.">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#1f7a6d">
+  <meta property="og:title" content="השוואת תלושים | תלוש בעברית">
+  <meta property="og:description" content="העלו כמה תלושים והשוו בין חודשים: מה השתנה בברוטו, בנטו, במס ובפנסיה.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="תלוש בעברית">
+  <meta property="og:locale" content="he_IL">
+  <meta property="og:image" content="%ORIGIN%/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="%ORIGIN%%PATH%">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -58,7 +66,8 @@
         <button class="tab" role="tab" type="button" id="cmp-tab-text" data-mode="text" aria-selected="false">הדבקת טקסט</button>
       </div>
       <div id="cmp-file">
-        <input id="cmp-input" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" multiple>
+        <input id="cmp-input" class="file-hidden" aria-label="בחירת קבצי תלוש להשוואה" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" multiple>
+        <label class="btn btn-ghost file-btn" for="cmp-input">בחירת קבצים</label>
         <p class="muted small">אפשר לבחור כמה קבצים יחד. כל קובץ נסרק בנפרד.</p>
       </div>
       <div id="cmp-text" hidden>

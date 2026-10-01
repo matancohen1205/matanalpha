@@ -26,5 +26,8 @@
   "private": true,
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "axe-core": "^4.13.0"
   }
 }

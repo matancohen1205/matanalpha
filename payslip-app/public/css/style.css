@@ -1588,7 +1588,7 @@ body.modal-open {
 }
 .chat-panel header small {
   display: block;
-  opacity: 0.85;
+  opacity: 1;
   font-size: 0.8rem;
 }
 .chat-x {
@@ -1965,3 +1965,14 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { border-color
 .date-row { position: relative; display: flex; gap: 0.5rem; align-items: stretch; }
 .date-row #r-start-text { flex: 1; }
 .date-native { position: absolute; inset-inline-end: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; padding: 0; border: 0; min-height: 0; }
+
+/* ניגודיות תגיות (WCAG AA) במצב בהיר */
+:root:not([data-theme='dark']) .badge.earning { background: #1b6f45; }
+:root:not([data-theme='dark']) .badge.deduction { background: #9a5409; }
+:root:not([data-theme='dark']) .badge.employer { background: #6f4c99; }
+:root:not([data-theme='dark']) .badge.info { background: #566a64; }
+
+/* בחירת קבצים: כפתור מותאם במקום ממשק הדפדפן (שמוצג בשפת הדפדפן ולא מתאים למצב כהה) */
+.file-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.file-btn { cursor: pointer; }
+.file-hidden:focus-visible + .file-btn { outline: 3px solid var(--primary); outline-offset: 2px; }
