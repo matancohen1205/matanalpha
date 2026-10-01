@@ -62,6 +62,8 @@ for f in glob.glob(os.path.join(root, '*.html')):
         s = s.replace('<script src="/js/common.js"></script>', '<script src="/js/util.js"></script>\n  <script src="/js/common.js"></script>')
     if '/js/chatbot.js' not in s:
         s = s.replace('<script src="/js/common.js"></script>', '<script src="/js/common.js"></script>\n  <script src="/js/chat-kb.js"></script>\n  <script src="/js/chatbot.js"></script>', 1)
+    if '/js/i18n.js' not in s:
+        s = s.replace('<script src="/js/util.js"></script>', '<script src="/js/i18n.js"></script>\n  <script src="/js/util.js"></script>', 1)
     if '/js/promo.js' not in s:
         s = s.replace('<script src="/js/common.js"></script>', '<script src="/js/common.js"></script>\n  <script src="/js/promo.js"></script>')
     open(f, 'w', encoding='utf-8').write(s)

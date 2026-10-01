@@ -1859,3 +1859,19 @@ input[type='date'] { min-height: 46px; padding: 0 0.8rem; border-radius: 12px; b
   margin: 1rem 0;
 }
 .acc-settings details { margin-bottom: 0.5rem; }
+
+/* בורר שפה */
+.header-inner .lang-select {
+  width: auto;
+  flex: none;
+  min-height: 0;
+  background-image: none;
+  font: inherit;
+  font-size: .85rem;
+  color: var(--text, inherit);
+  background: var(--surface, transparent);
+  border: 1px solid var(--border, #cbd5d1);
+  border-radius: 999px;
+  padding: .3rem .6rem;
+  cursor: pointer;
+}
