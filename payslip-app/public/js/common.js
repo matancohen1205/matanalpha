@@ -139,6 +139,9 @@
   foot.append(reset, statement);
 
   panel.append(head, sizeRow, lvlWrap, grid, foot);
+  panel.setAttribute('dir', 'rtl');
+  panel.setAttribute('lang', 'he');
+  fab.setAttribute('dir', 'rtl');
   document.body.append(fab, panel);
 
   function step(dir) {

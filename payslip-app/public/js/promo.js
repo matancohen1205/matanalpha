@@ -52,7 +52,7 @@
       h('div', { class: 'promo-actions' }, [cta, later]),
       h('div', { class: 'promo-foot' }, [never, h('span', { class: 'muted small', text: 'ביטול בכל עת. התלושים שלכם לא נשמרים.' })]),
     ]);
-    var overlay = h('div', { class: 'promo-overlay' }, [dialog]);
+    var overlay = h('div', { class: 'promo-overlay', dir: 'rtl', lang: 'he' }, [dialog]);
     overlay.addEventListener('click', function (e) { if (e.target === overlay) close(7); });
 
     function onKey(e) {
