@@ -10,11 +10,13 @@ HEADER = '''<header class="site-header">
       </a>
       <nav class="nav" aria-label="ניווט ראשי">
         <a class="nav-link" href="/">הסבר תלוש</a>
-        <a class="nav-link" href="/calculator.html">מחשבון נטו-ברוטו</a>
+        <a class="nav-link" href="/calculator.html">מחשבון</a>
         <a class="nav-link" href="/credits.html">נקודות זיכוי</a>
-        <a class="nav-link" href="/compare.html">השוואת תלושים</a>
+        <a class="nav-link" href="/compare.html">השוואה</a>
         <a class="nav-link" href="/whatsapp.html">וואטסאפ</a>
         <a class="nav-link" href="/pricing.html">מנוי Pro</a>
+        <a class="nav-link" href="/about.html">מי אנחנו</a>
+        <a class="nav-link" href="/contact.html">צור קשר</a>
       </nav>
       <span id="pro-badge" class="pro-badge" hidden>Pro</span>
       <button id="theme-toggle" class="icon-btn" type="button" aria-label="מעבר למצב כהה" aria-pressed="false">
@@ -28,6 +30,8 @@ FOOTER = '''<footer class="site-footer">
     <div class="container footer-inner">
       <span>© <span id="year">2025</span> תלוש בעברית. ההסברים והחישובים כלליים ואינם ייעוץ מקצועי.</span>
       <nav class="footer-links" aria-label="קישורים נוספים">
+        <a href="/about.html">מי אנחנו</a>
+        <a href="/contact.html">צור קשר</a>
         <a href="/#glossary">מילון מונחים</a>
         <a href="/privacy.html">מדיניות פרטיות</a>
         <a href="/terms.html">תנאי שימוש</a>
@@ -54,6 +58,8 @@ for f in glob.glob(os.path.join(root, '*.html')):
     # סקריפטים משותפים בכל דף
     if '/js/util.js' not in s:
         s = s.replace('<script src="/js/common.js"></script>', '<script src="/js/util.js"></script>\n  <script src="/js/common.js"></script>')
+    if '/js/chatbot.js' not in s:
+        s = s.replace('<script src="/js/common.js"></script>', '<script src="/js/common.js"></script>\n  <script src="/js/chat-kb.js"></script>\n  <script src="/js/chatbot.js"></script>', 1)
     if '/js/promo.js' not in s:
         s = s.replace('<script src="/js/common.js"></script>', '<script src="/js/common.js"></script>\n  <script src="/js/promo.js"></script>')
     open(f, 'w', encoding='utf-8').write(s)

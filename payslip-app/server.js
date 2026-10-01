@@ -12,6 +12,7 @@ const { compareSlips } = require('./src/compare');
 const { createBilling } = require('./src/billing');
 const crypto = require('crypto');
 const { createStore } = require('./src/store');
+const { createSupport } = require('./src/support');
 const { createWhatsApp, createMetaClient, createDevClient } = require('./src/whatsapp');
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -101,10 +102,13 @@ const requirePro = (req, res, next) => billingRef.current.requirePro(req, res, n
 // ---------- וואטסאפ (Meta Cloud API) ----------
 const waEnv = process.env;
 const waReal = !!(waEnv.WA_ACCESS_TOKEN && waEnv.WA_PHONE_NUMBER_ID && waEnv.WA_BUSINESS_NUMBER);
-if (isProd && waReal && (!waEnv.WA_DATA_KEY || !waEnv.WA_APP_SECRET || !waEnv.WA_VERIFY_TOKEN || !waEnv.WA_DB_PATH)) {
-  throw new Error('WA_DATA_KEY, WA_APP_SECRET, WA_VERIFY_TOKEN and WA_DB_PATH are required when WhatsApp is enabled in production');
+if (isProd && waReal && (!(waEnv.DATA_KEY || waEnv.WA_DATA_KEY) || !waEnv.WA_APP_SECRET || !waEnv.WA_VERIFY_TOKEN || !(waEnv.DB_PATH || waEnv.WA_DB_PATH))) {
+  throw new Error('DATA_KEY, WA_APP_SECRET, WA_VERIFY_TOKEN and DB_PATH are required when WhatsApp is enabled in production');
 }
-const waStore = createStore({ path: waEnv.WA_DB_PATH || ':memory:', key: waEnv.WA_DATA_KEY });
+const dbPath = waEnv.DB_PATH || waEnv.WA_DB_PATH || ':memory:';
+const dataKey = waEnv.DATA_KEY || waEnv.WA_DATA_KEY;
+if (isProd && dbPath === ':memory:') console.warn('WARNING: DB_PATH is not set, so support tickets are not persisted');
+const waStore = createStore({ path: dbPath, key: dataKey });
 function buildWhatsApp(over = {}) {
   return createWhatsApp({
     store: waStore,
@@ -124,6 +128,26 @@ function buildWhatsApp(over = {}) {
 const waRef = { current: buildWhatsApp() };
 app.setWhatsApp = (over) => { waRef.current = buildWhatsApp(over); return waRef.current; }; // לבדיקות
 api.use('/whatsapp', (req, res, next) => waRef.current.router(req, res, next));
+
+// ---------- שירות לקוחות: טופס יצירת קשר ופרטי קשר ----------
+function buildSupport(over = {}) {
+  return createSupport({
+    store: waStore,
+    mailer: waEnv.SMTP_URL ? require('nodemailer').createTransport(waEnv.SMTP_URL) : null,
+    publicUrl: billingConfig.publicUrl,
+    config: {
+      supportEmail: waEnv.SUPPORT_EMAIL,
+      supportWhatsapp: waEnv.SUPPORT_WHATSAPP,
+      supportHours: waEnv.SUPPORT_HOURS,
+      mailFrom: waEnv.MAIL_FROM,
+      notifyTo: waEnv.SUPPORT_NOTIFY_TO,
+    },
+    ...over,
+  });
+}
+const supportRef = { current: buildSupport() };
+app.setSupport = (over) => { supportRef.current = buildSupport(over); return supportRef.current; }; // לבדיקות
+api.use((req, res, next) => ((req.path === '/site-config' || req.path === '/contact') ? supportRef.current.router(req, res, next) : next()));
 
 // קבצים נשמרים בזיכרון בלבד, ללא כתיבה לדיסק
 const upload = multer({
@@ -214,6 +238,7 @@ app.use((err, req, res, next) => {
 if (require.main === module) {
   ensureLangDir();
   app.listen(PORT, () => console.log(`Payslip app listening on http://localhost:${PORT}`));
+  setInterval(() => waStore.cleanup(), 24 * 3600 * 1000).unref(); // ניקוי יומי של נתונים זמניים ופניות ישנות
   if (waEnv.WA_REMINDER_TEMPLATE && waRef.current.configured) {
     // תזמון יומי של תזכורות. מניחים מופע שרת יחיד.
     const tick = () => {

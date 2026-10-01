@@ -36,6 +36,12 @@ function createStore({ path = ':memory:', key } = {}) {
       created_at INTEGER NOT NULL,
       PRIMARY KEY (user_id, period)
     );
+    CREATE TABLE IF NOT EXISTS tickets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      created_at INTEGER NOT NULL,
+      status TEXT NOT NULL DEFAULT 'new',
+      data_enc BLOB NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS nonces (nonce TEXT PRIMARY KEY, used_at INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS seen_messages (id TEXT PRIMARY KEY, seen_at INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS inbound_counts (phone_hash TEXT NOT NULL, day TEXT NOT NULL, n INTEGER NOT NULL, PRIMARY KEY (phone_hash, day));
@@ -75,6 +81,10 @@ function createStore({ path = ':memory:', key } = {}) {
     purgeNonces: db.prepare('DELETE FROM nonces WHERE used_at < ?'),
     count: db.prepare("INSERT INTO inbound_counts (phone_hash, day, n) VALUES (?,?,1) ON CONFLICT(phone_hash, day) DO UPDATE SET n = n + 1 RETURNING n"),
     purgeCounts: db.prepare('DELETE FROM inbound_counts WHERE day < ?'),
+    addTicket: db.prepare('INSERT INTO tickets (created_at, data_enc) VALUES (?, ?)'),
+    tickets: db.prepare('SELECT id, created_at, status, data_enc FROM tickets ORDER BY id DESC LIMIT ?'),
+    setTicket: db.prepare('UPDATE tickets SET status = ? WHERE id = ?'),
+    purgeTickets: db.prepare('DELETE FROM tickets WHERE created_at < ?'),
   };
 
   const publicUser = (row) => (row ? { id: Number(row.id), cid: row.cid, phone: decrypt(row.phone_enc), consentAt: Number(row.consent_at), reminders: !!row.reminders, lastRemindedAt: Number(row.last_reminded_at) } : null);
@@ -126,7 +136,16 @@ function createStore({ path = ':memory:', key } = {}) {
     bump(phone, now = Date.now()) {
       return Number(q.count.get(hash(phone), new Date(now).toISOString().slice(0, 10)).n);
     },
+    /** פניות שירות לקוחות (מוצפנות). מחזיר מזהה פנייה. */
+    addTicket(data, now = Date.now()) {
+      return Number(q.addTicket.run(now, encrypt(JSON.stringify(data))).lastInsertRowid);
+    },
+    listTickets(limit = 50) {
+      return q.tickets.all(limit).map((r) => ({ id: Number(r.id), createdAt: Number(r.created_at), status: r.status, ...JSON.parse(decrypt(r.data_enc)) }));
+    },
+    setTicketStatus: (id, status) => q.setTicket.run(status, id),
     cleanup(now = Date.now()) {
+      q.purgeTickets.run(now - 365 * DAY);
       q.purgeSeen.run(now - 3 * DAY);
       q.purgeNonces.run(now - 2 * DAY);
       q.purgeCounts.run(new Date(now - 3 * DAY).toISOString().slice(0, 10));

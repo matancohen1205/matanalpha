@@ -114,3 +114,63 @@ test('מנוי: חסימת Pro, הפעלה דרך Stripe מדומה, והשוו�
     server.close();
   }
 });
+
+/* ---------------- שירות לקוחות ---------------- */
+const ChatKB = require('../public/js/chat-kb');
+const { GLOSSARY } = require('../src/glossary');
+const { createSupport } = require('../src/support');
+
+test('עוזר האתר: התאמת שאלות לכוונות ולמילון', () => {
+  const intent = (q) => { const r = ChatKB.match(q, GLOSSARY); return r.type === 'kb' ? r.intent.id : r.type === 'glossary' ? 'glossary:' + r.entry.id : 'none'; };
+  assert.strictEqual(intent('איך מעלים תלוש'), 'upload');
+  assert.strictEqual(intent('אני רוצה לבטל את המנוי'), 'billing');
+  assert.strictEqual(intent('כמה עולה המנוי'), 'pro');
+  assert.strictEqual(intent('האתר לא עובד לי'), 'human');
+  assert.strictEqual(intent('אני רוצה נציג'), 'human');
+  assert.strictEqual(intent('מה זה ביטוח לאומי'), 'glossary:national_insurance');
+  assert.strictEqual(intent('למה מנכים לי מס בריאות'), 'glossary:health_tax');
+  assert.strictEqual(intent('איפה מוחקים את המידע שלי'), 'privacy');
+  assert.strictEqual(intent('כדורגל'), 'none');
+});
+
+test('טופס יצירת קשר: ולידציה, מלכודת בוטים, שמירה מוצפנת ומייל', async () => {
+  const app = require('express')();
+  const { createStore } = require('../src/store');
+  const store = createStore({ key: require('crypto').randomBytes(32).toString('hex') });
+  const mails = [];
+  const { router } = createSupport({ store, mailer: { sendMail: async (m) => mails.push(m) }, config: { supportEmail: 'help@site.test', supportHours: 'א-ה 9:00-17:00' } });
+  app.use('/api', router);
+  const server = app.listen(0);
+  const good = { name: 'דנה כהן', email: 'dana@example.com', topic: 'billing', message: 'חויבתי פעמיים החודש, אשמח לבדיקה.', consent: true, elapsedMs: 8000, website: '' };
+  try {
+    assert.strictEqual((await request(server, 'GET', '/api/site-config')).json.supportEmail, 'help@site.test');
+    // חסר אימייל + בלי הסכמה
+    const bad = await request(server, 'POST', '/api/contact', { ...good, email: 'nope', consent: false });
+    assert.strictEqual(bad.status, 400);
+    assert.ok(bad.json.errors.email && bad.json.errors.consent);
+    // מהר מדי (בוט)
+    assert.strictEqual((await request(server, 'POST', '/api/contact', { ...good, elapsedMs: 100 })).status, 400);
+    // honeypot: מחזיר הצלחה מדומה ולא שומר
+    const before = store.listTickets().length;
+    assert.strictEqual((await request(server, 'POST', '/api/contact', { ...good, website: 'http://spam' })).json.ticket, 'T-0000');
+    assert.strictEqual(store.listTickets().length, before);
+    // תקין
+    const ok = await request(server, 'POST', '/api/contact', good);
+    assert.strictEqual(ok.status, 200);
+    assert.match(ok.json.ticket, /^T-\d{4}$/);
+    const t = store.listTickets()[0];
+    assert.strictEqual(t.email, 'dana@example.com');
+    assert.strictEqual(t.topic, 'billing');
+    await new Promise((r) => setTimeout(r, 30));
+    assert.strictEqual(mails.length, 1);
+    assert.strictEqual(mails[0].to, 'help@site.test');
+    assert.strictEqual(mails[0].replyTo, 'dana@example.com');
+    assert.match(mails[0].subject, /מנוי ותשלום/);
+    // הגבלת קצב: 5 לשעה (כבר נוצלו 4 קריאות שהגיעו עד המגבל)
+    let limited = false;
+    for (let i = 0; i < 6 && !limited; i++) limited = (await request(server, 'POST', '/api/contact', good)).status === 429;
+    assert.ok(limited);
+  } finally {
+    server.close();
+  }
+});

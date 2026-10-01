@@ -82,31 +82,6 @@
   transform: none;
 }
 
-/* ---------- כרטיסים חיים ---------- */
-.tool-card,
-.persona,
-.step-card {
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-}
-.tool-card:hover,
-.persona:hover,
-.step-card:hover {
-  transform: translateY(-4px);
-}
-.persona .art {
-  width: 100%;
-  max-width: 180px;
-  height: auto;
-  margin-bottom: 0.4rem;
-}
-.persona .art .a1 { fill: color-mix(in srgb, var(--primary) 22%, var(--surface)); stroke: var(--primary); stroke-width: 2.4; }
-.persona .art .a2 { fill: none; stroke: var(--primary); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.persona .art .a3 { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
-.persona .art .a4 { fill: color-mix(in srgb, var(--accent) 24%, var(--surface)); stroke: var(--accent); stroke-width: 2.4; }
-.persona .art > * { transform-origin: center; }
-.persona:hover .art .a1 { animation: bob 1s ease-in-out infinite alternate; }
-@keyframes bob { to { transform: translateY(-4px); } }
-
 /* ---------- נגן הסרטון ---------- */
 .video-section .player {
   max-width: 1000px;

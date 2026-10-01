@@ -27,7 +27,7 @@ const footer = between(index, '<footer class="site-footer">', '</footer>');
 const homeMain = between(index, '<main id="main">', '</main>');
 
 const LEGAL = ['privacy', 'terms', 'accessibility'];
-const TOOLS = ['calculator', 'credits', 'compare', 'pricing', 'whatsapp'];
+const TOOLS = ['calculator', 'credits', 'compare', 'pricing', 'whatsapp', 'about', 'contact'];
 const VIEWS_ALL = LEGAL.concat(TOOLS);
 const legal = LEGAL.map((n) => {
   const art = between(pub(n + '.html'), '<article class="prose">', '</article>');
@@ -71,6 +71,8 @@ const shim = `
     if (url === '/api/whatsapp/status') { waPolls += waLinking ? 1 : 0; return json(200, { configured: true, pro: proOn, linked: waLinked || waPolls >= 2, phone: '•••••••567' }); }
     if (url === '/api/whatsapp/link') { if (!proOn) return json(402, { message: 'החיבור זמין למנויי Pro.' }); waLinking = true; return json(200, { url: '#whatsapp', expiresInMinutes: 30 }); }
     if (url === '/api/whatsapp/unlink') { waLinked = false; waLinking = false; waPolls = -99; return json(200, { linked: false }); }
+    if (url === '/api/site-config') return json(200, { supportEmail: '', supportWhatsapp: '', supportHours: '', topics: {} });
+    if (url === '/api/contact') return json(200, { ok: true, ticket: 'T-DEMO' });
     if (url === '/api/billing/me') return json(200, { pro: proOn, configured: false, devUnlock: true, priceLabel: '19.90 ₪ לחודש' });
     if (url === '/api/billing/dev-activate') { proOn = true; return json(200, { pro: true }); }
     if (url === '/api/billing/logout') { proOn = false; return json(200, { pro: false }); }
@@ -89,7 +91,7 @@ const shim = `
   var VIEWS = ${JSON.stringify(VIEWS_ALL)};
   var home = document.getElementById('home-view');
   function route() {
-    var id = (location.hash || '').replace('#', '');
+    var id = (location.hash || '').replace('#', '').split('?')[0];
     var isLegal = VIEWS.indexOf(id) >= 0;
     home.hidden = isLegal;
     VIEWS.forEach(function (v) { document.getElementById('view-' + v).hidden = v !== id; });
@@ -149,6 +151,14 @@ ${body}
 <script>${pub('js/tax-core.js')}</script>
 <script>${pub('js/util.js')}</script>
 <script>${commonJs}</script>
+<script>${(() => {
+  let kb = pub('js/chat-kb.js');
+  for (const n of VIEWS_ALL) kb = kb.split(`'/${n}.html'`).join(`'#${n}'`);
+  kb = kb.split("'/#upload'").join("'#upload'").split("'/#glossary'").join("'#glossary'").split("home: '/'").join("home: '#'");
+  return kb;
+})()}</script>
+<script>${pub('js/chatbot.js').split("if (location.pathname === '/') close();").join('close();')}</script>
+
 <script>${pub('js/promo.js').split("href: '/pricing.html'").join("href: '#pricing'")}</script>
 <script>${appJs}</script>
 <script>${pub('js/explainer.js')}</script>
@@ -157,6 +167,7 @@ ${body}
 <script>${pub('js/credits.js')}</script>
 <script>${pub('js/compare.js').split("href: '/pricing.html'").join("href: '#pricing'")}</script>
 <script>${pub('js/wa.js').split("window.open(r.body.url, '_blank', 'noopener');").join('').split("href: '/pricing.html'").join("href: '#pricing'")}</script>
+<script>${pub('js/contact.js').split("'/api/contact'").join("'/api/contact'")}</script>
 <script>${pub('js/pricing.js').split("href: '/compare.html'").join("href: '#compare'")}</script>
 <script>document.querySelectorAll('#year').forEach(function(e){e.textContent=new Date().getFullYear();});</script>
 `;
