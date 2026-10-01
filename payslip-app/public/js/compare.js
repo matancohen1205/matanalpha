@@ -220,5 +220,15 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   });
 
+  /* תלושים שנבחרו בחשבון (הכספת פוענחה בדפדפן, והם נשלחים רק לחישוב ההשוואה) */
+  try {
+    var pre = JSON.parse(sessionStorage.getItem('ps-compare-preload') || 'null');
+    sessionStorage.removeItem('ps-compare-preload');
+    (Array.isArray(pre) ? pre : []).slice(0, MAX).forEach(function (s) {
+      var g = (s.items.filter(function (i) { return i.id === 'gross'; })[0] || {}).amount;
+      var n = (s.items.filter(function (i) { return i.id === 'net'; })[0] || {}).amount;
+      slips.push({ label: String(s.label || 'תלוש').slice(0, 40), analysis: { summary: { gross: g === undefined ? null : g, net: n === undefined ? null : n }, items: s.items } });
+    });
+  } catch (e) {}
   renderList();
 })();

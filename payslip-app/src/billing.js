@@ -254,7 +254,8 @@ function createBilling(opts) {
     return value;
   }
 
-  return { router, requirePro, getAuth, isProCid };
+  const setProCookie = (res, cid) => setCookie(res, { cid });
+  return { router, requirePro, getAuth, isProCid, setProCookie };
 }
 
 async function hasActiveSubscription(stripe, customerId) {

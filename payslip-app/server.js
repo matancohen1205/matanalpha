@@ -13,6 +13,7 @@ const { createBilling } = require('./src/billing');
 const crypto = require('crypto');
 const { createStore } = require('./src/store');
 const { createSupport } = require('./src/support');
+const { createAccounts } = require('./src/accounts');
 const { createWhatsApp, createMetaClient, createDevClient } = require('./src/whatsapp');
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -196,6 +197,26 @@ function buildSupport(over = {}) {
     ...over,
   });
 }
+// ---------- חשבונות (כספת מוצפנת בצד לקוח) ----------
+function buildAccounts(over = {}) {
+  return createAccounts({
+    store: waStore,
+    mailer: billingConfig.mailer,
+    mailFrom: billingConfig.mailFrom,
+    secret: tokenSecret,
+    publicUrl: billingConfig.publicUrl,
+    secure: isProd,
+    devEndpoints: !isProd && waEnv.WA_DEV === '1',
+    setProCookie: (res, cid) => billingRef.current.setProCookie(res, cid),
+    isProCid: (cid) => billingRef.current.isProCid(cid),
+    getProAuth: (req) => billingRef.current.getAuth(req),
+    ...over,
+  });
+}
+const accountsRef = { current: buildAccounts() };
+app.setAccounts = (over) => { accountsRef.current = buildAccounts(over); return accountsRef.current; }; // לבדיקות
+api.use('/account', (req, res, next) => (req.method === 'POST' ? heavy : (q, r, n) => n())(req, res, () => accountsRef.current.router(req, res, next)));
+
 const supportRef = { current: buildSupport() };
 app.setSupport = (over) => { supportRef.current = buildSupport(over); return supportRef.current; }; // לבדיקות
 api.use((req, res, next) => ((req.path === '/site-config' || req.path === '/contact') ? supportRef.current.router(req, res, next) : next()));

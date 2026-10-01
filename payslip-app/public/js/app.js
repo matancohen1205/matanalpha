@@ -322,9 +322,11 @@
     right.append(
       h('div', { class: 'form-actions no-print' }, [
         h('button', { class: 'btn', type: 'button', text: '🖨️ הדפסה / שמירה כ-PDF', onclick: function () { window.print(); } }),
+        h('button', { class: 'btn btn-ghost', type: 'button', text: '💾 שמירה בחשבון', onclick: saveToAccount }),
         h('button', {
           class: 'btn btn-ghost', type: 'button', text: '🗑️ מחיקת הנתונים והתחלה מחדש', onclick: resetAll,
         }),
+        h('p', { class: 'muted small', id: 'save-note', role: 'status' }),
       ])
     );
   }
@@ -471,6 +473,20 @@
     });
     wrap.append(ul);
     return wrap;
+  }
+
+  /* שמירה בכספת המוצפנת של החשבון (ההצפנה מתבצעת בדפדפן) */
+  function saveToAccount() {
+    var note = $('save-note');
+    if (!window.PSAccount) return;
+    PSAccount.me().then(function (me) {
+      if (!me.loggedIn) { note.replaceChildren(document.createTextNode('כדי לשמור צריך חשבון. '), h('a', { href: '/account.html', text: 'כניסה או הרשמה' })); return; }
+      if (!PSAccount.getKey()) { note.replaceChildren(document.createTextNode('הכספת נעולה בלשונית הזו. '), h('a', { href: '/account.html', text: 'פתחו אותה בעמוד החשבון' })); return; }
+      note.textContent = 'שומרים מוצפן…';
+      PSAccount.saveSnapshot(state.data).then(
+        function () { note.replaceChildren(document.createTextNode('נשמר בכספת המוצפנת. '), h('a', { href: '/account.html', text: 'להיסטוריה שלי' })); },
+        function () { note.textContent = 'השמירה נכשלה. נסו שוב.'; });
+    });
   }
 
   function refreshAll() {
