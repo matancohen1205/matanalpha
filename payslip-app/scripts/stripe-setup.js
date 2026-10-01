@@ -24,6 +24,13 @@ const amount = Number(process.env.PRICE_AMOUNT_AGOROT) || 1990;
     unit_amount: amount,
     recurring: { interval: 'month' },
   });
+  const yearlyAmount = Number(process.env.PRICE_AMOUNT_YEARLY_AGOROT) || amount * 10; // חודשיים מתנה
+  const yearly = await stripe.prices.create({
+    product: product.id,
+    currency: 'ils',
+    unit_amount: yearlyAmount,
+    recurring: { interval: 'year' },
+  });
   const portal = await stripe.billingPortal.configurations.create({
     business_profile: { headline: 'ניהול מנוי Pro' },
     features: {
@@ -36,6 +43,8 @@ const amount = Number(process.env.PRICE_AMOUNT_AGOROT) || 1990;
   console.log('נוצר בהצלחה.\n');
   console.log(`STRIPE_PRICE_ID=${price.id}`);
   console.log(`PRICE_LABEL=${(amount / 100).toFixed(2)} ₪ לחודש`);
+  console.log(`STRIPE_PRICE_ID_YEARLY=${yearly.id}`);
+  console.log(`PRICE_LABEL_YEARLY=${(yearlyAmount / 100).toFixed(0)} ₪ לשנה (חודשיים מתנה)`);
   console.log(`(Customer Portal: ${portal.id})`);
 })().catch((e) => {
   console.error('נכשל:', e.message);

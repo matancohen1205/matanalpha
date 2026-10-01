@@ -144,11 +144,16 @@ const billingConfig = {
   stripe: stripeKey ? require('stripe')(stripeKey) : null,
   secret: tokenSecret,
   priceId: process.env.STRIPE_PRICE_ID,
+  priceIdYearly: process.env.STRIPE_PRICE_ID_YEARLY,
   publicUrl: process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`,
   priceLabel: process.env.PRICE_LABEL || '19.90 ₪ לחודש',
+  priceLabelYearly: process.env.PRICE_LABEL_YEARLY || (process.env.STRIPE_PRICE_ID_YEARLY || !process.env.STRIPE_SECRET_KEY ? '199 ₪ לשנה (חודשיים מתנה)' : ''),
   devUnlock: !isProd && process.env.PRO_DEV_UNLOCK === '1',
   secure: isProd,
   once: (key) => waStore.useNonce(key), // מפתחות חד-פעמיים (מזהה עסקה)
+  mailer: waEnv.SMTP_URL ? require('nodemailer').createTransport(waEnv.SMTP_URL) : null,
+  mailFrom: waEnv.MAIL_FROM || waEnv.SUPPORT_EMAIL,
+  throttle: (key) => waStore.bump(key),
 };
 const billingRef = { current: createBilling(billingConfig) };
 app.setBilling = (opts) => { billingRef.current = createBilling({ ...billingConfig, ...opts }); }; // לבדיקות

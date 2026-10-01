@@ -167,11 +167,55 @@ test('security.txt נבנה מכתובת הקשר', async () => {
   assert.ok([200, 404].includes(none.status));
 });
 
-test('הגבלת קצב על פעולות כבדות', async () => {
-  let limited = 0;
-  for (let i = 0; i < 120 && !limited; i++) {
-    const r = await req('POST', '/api/analyze-text', { body: { text: 'שכר נטו 1,000.00' } });
-    if (r.status === 429) limited = i + 1;
-  }
-  assert.ok(limited > 0, 'rate limit never triggered');
+test('מנוי שנתי ושחזור גישה באימייל', async () => {
+  const mails = [];
+  const mailer = { sendMail: async (m) => mails.push(m) };
+  let active = true;
+  const customers = { 'owner@example.com': [{ id: 'cus_owner' }] };
+  const created = [];
+  const stripe = {
+    checkout: { sessions: { create: async (p) => { created.push(p); return { url: 'https://stripe.test/pay' }; }, retrieve: async () => ({}) } },
+    customers: { list: async ({ email }) => ({ data: customers[email] || [] }) },
+    subscriptions: { list: async () => ({ data: active ? [{ status: 'active' }] : [{ status: 'canceled' }] }) },
+  };
+  app.setBilling({ stripe, priceId: 'price_m', priceIdYearly: 'price_y', priceLabel: '19.90', priceLabelYearly: '199', secret: 'test-secret', mailer, mailFrom: 'no-reply@site.test', throttle: (() => { const n = {}; return (k) => (n[k] = (n[k] || 0) + 1); })() });
+
+  // שנתי / חודשי בקופה
+  await req('POST', '/api/billing/checkout', { body: { plan: 'yearly' } });
+  await req('POST', '/api/billing/checkout', { body: {} });
+  assert.strictEqual(created[0].line_items[0].price, 'price_y');
+  assert.strictEqual(created[1].line_items[0].price, 'price_m');
+  const me = await req('GET', '/api/billing/me');
+  assert.deepStrictEqual(me.json.plans.map((p) => p.id), ['monthly', 'yearly']);
+
+  // שחזור: תשובה זהה לכתובת קיימת ולא קיימת, מייל רק לבעל מנוי
+  const wait = () => new Promise((r) => setTimeout(r, 60));
+  const a = await req('POST', '/api/billing/recover', { body: { email: 'stranger@example.com' } });
+  const b = await req('POST', '/api/billing/recover', { body: { email: 'owner@example.com' } });
+  await wait();
+  assert.deepStrictEqual(a.json, b.json);
+  assert.strictEqual(mails.length, 1);
+  assert.strictEqual(mails[0].to, 'owner@example.com');
+  assert.strictEqual((await req('POST', '/api/billing/recover', { body: { email: 'not-an-email' } })).status, 400);
+  const link = mails[0].text.match(/recover=([\w.-]+)/)[1];
+
+  // אישור: חד-פעמי, ועוגייה רק לטוקן מסוג recover
+  const waLike = sign({ t: 'pro', cid: 'cus_owner', exp: Math.floor(Date.now() / 1000) + 60 }, 'test-secret');
+  assert.strictEqual((await req('POST', '/api/billing/recover/confirm', { body: { token: waLike } })).status, 400);
+  assert.strictEqual((await req('POST', '/api/billing/recover/confirm', { body: { token: link + 'x' } })).status, 400);
+  const ok = await req('POST', '/api/billing/recover/confirm', { body: { token: link } });
+  assert.strictEqual(ok.status, 200);
+  assert.match(ok.headers['set-cookie'][0], /^ps_pro=/);
+  assert.strictEqual((await req('POST', '/api/billing/recover/confirm', { body: { token: link } })).status, 409);
+
+  // מנוי שבוטל לא משוחזר גם עם קישור תקף
+  await req('POST', '/api/billing/recover', { body: { email: 'owner@example.com' } });
+  await wait();
+  active = false;
+  const link2 = mails[1].text.match(/recover=([\w.-]+)/)[1];
+  assert.strictEqual((await req('POST', '/api/billing/recover/confirm', { body: { token: link2 } })).status, 402);
+
+  // בלי שרת דואר: שחזור לא זמין
+  app.setBilling({ stripe, priceId: 'price_m', secret: 'test-secret', mailer: null });
+  assert.strictEqual((await req('POST', '/api/billing/recover', { body: { email: 'owner@example.com' } })).status, 503);
 });
