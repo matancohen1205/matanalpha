@@ -25,6 +25,12 @@
     });
   }
 
+  document.querySelectorAll('.nav-link').forEach(function (a) {
+    var path = location.pathname.replace(/\/index\.html$/, '/');
+    var href = a.getAttribute('href');
+    if (href === path || (href !== '/' && path === href.replace('.html', ''))) a.setAttribute('aria-current', 'page');
+  });
+
   /* ---------- נגישות ---------- */
   var state = {};
   try { state = JSON.parse(store.get('ps-a11y') || '{}') || {}; } catch (e) { state = {}; }

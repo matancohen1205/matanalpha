@@ -36,7 +36,7 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var el = {
-    tabs: document.querySelectorAll('[role="tab"]'),
+    tabs: document.querySelectorAll('#upload-card [role="tab"]'),
     panels: { file: $('panel-file'), text: $('panel-text') },
     drop: $('dropzone'),
     input: $('file-input'),
@@ -200,6 +200,7 @@
       var body = await res.json().catch(function () { return {}; });
       if (!res.ok) throw new Error(body.message || 'שגיאה בעיבוד הקובץ.');
       state.data = body;
+      rememberCredits(body);
       state.data.items.forEach(function (it) { it.origAmount = it.amount; });
       state.filter = 'all';
       state.query = '';
@@ -243,6 +244,14 @@
       });
     }, false);
   });
+
+  /* נקודות הזיכוי מהתלוש נשמרות בזיכרון הלשונית בלבד כדי למלא את המחשבון ובדיקת הזיכוי */
+  function rememberCredits(data) {
+    try {
+      var tc = data.items.find(function (i) { return i.id === 'tax_credits' && i.amount !== null; });
+      if (tc) sessionStorage.setItem('ps-credits', String(tc.amount));
+    } catch (e) {}
+  }
 
   /* ---------- חישוב סיכומים (מגיב לעריכות) ---------- */
   function amountOf(id) {

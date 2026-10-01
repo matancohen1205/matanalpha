@@ -8,6 +8,9 @@ const rateLimit = require('express-rate-limit');
 const { analyzePayslip } = require('./src/analyzer');
 const { extractText, ensureLangDir } = require('./src/extract');
 const { GLOSSARY } = require('./src/glossary');
+const { compareSlips } = require('./src/compare');
+const { createBilling } = require('./src/billing');
+const crypto = require('crypto');
 
 const PORT = Number(process.env.PORT) || 3000;
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
@@ -65,15 +68,33 @@ api.use((req, res, next) => {
   res.setHeader('Cache-Control', 'no-store');
   next();
 });
-api.use(
-  rateLimit({
-    windowMs: 10 * 60 * 1000,
-    limit: 20,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { error: 'RATE_LIMIT', message: 'יותר מדי בקשות. נסו שוב בעוד מספר דקות.' },
-  })
-);
+const limiterMsg = { error: 'RATE_LIMIT', message: 'יותר מדי בקשות. נסו שוב בעוד מספר דקות.' };
+// כללי: נטען בכל כניסה לדף (מילון, סטטוס מנוי)
+api.use(rateLimit({ windowMs: 10 * 60 * 1000, limit: 300, standardHeaders: true, legacyHeaders: false, message: limiterMsg }));
+// קפדני: פעולות כבדות (סריקה, השוואה, תשלום)
+const heavy = rateLimit({ windowMs: 10 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false, message: limiterMsg });
+
+// ---------- מנוי ----------
+const isProd = process.env.NODE_ENV === 'production';
+const stripeKey = process.env.STRIPE_SECRET_KEY;
+let tokenSecret = process.env.PRO_TOKEN_SECRET;
+if (!tokenSecret) {
+  if (isProd && stripeKey) throw new Error('PRO_TOKEN_SECRET is required in production when Stripe is enabled');
+  tokenSecret = crypto.randomBytes(32).toString('hex'); // אקראי לכל הרצה (פיתוח בלבד)
+}
+const billingConfig = {
+  stripe: stripeKey ? require('stripe')(stripeKey) : null,
+  secret: tokenSecret,
+  priceId: process.env.STRIPE_PRICE_ID,
+  publicUrl: process.env.PUBLIC_URL || `http://localhost:${PORT}`,
+  priceLabel: process.env.PRICE_LABEL || '19.90 ₪ לחודש',
+  devUnlock: !isProd && process.env.PRO_DEV_UNLOCK === '1',
+  secure: isProd,
+};
+const billingRef = { current: createBilling(billingConfig) };
+app.setBilling = (opts) => { billingRef.current = createBilling({ ...billingConfig, ...opts }); }; // לבדיקות
+api.use('/billing', (req, res, next) => (req.method === 'POST' && req.path !== '/dev-activate' ? heavy : (q, r, n) => n())(req, res, () => billingRef.current.router(req, res, next)));
+const requirePro = (req, res, next) => billingRef.current.requirePro(req, res, next);
 
 // קבצים נשמרים בזיכרון בלבד, ללא כתיבה לדיסק
 const upload = multer({
@@ -100,7 +121,7 @@ const MESSAGES = {
   OCR_TIMEOUT: 'קריאת התלוש לקחה יותר מדי זמן. נסו תמונה חדה וקטנה יותר.',
 };
 
-api.post('/analyze', upload.single('payslip'), (req, res) =>
+api.post('/analyze', heavy, upload.single('payslip'), (req, res) =>
   withSlot(res, async () => {
     if (!req.file) return res.status(400).json({ error: 'NO_FILE', message: 'לא נבחר קובץ.' });
     try {
@@ -120,7 +141,7 @@ api.post('/analyze', upload.single('payslip'), (req, res) =>
 );
 
 // הדבקת טקסט ידנית (חלופה בלי העלאת קובץ)
-api.post('/analyze-text', express.json({ limit: '100kb' }), (req, res) => {
+api.post('/analyze-text', heavy, express.json({ limit: '100kb' }), (req, res) => {
   const text = typeof req.body?.text === 'string' ? req.body.text.slice(0, MAX_TEXT_CHARS) : '';
   if (text.trim().length < 10) {
     return res.status(400).json({ error: 'NO_TEXT', message: 'יש להדביק טקסט של התלוש.' });
@@ -132,6 +153,15 @@ const glossaryList = GLOSSARY.map(({ id, type, title, what, why }) => ({ id, typ
 api.get('/glossary', (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=3600');
   res.json(glossaryList);
+});
+
+// השוואת תלושים: זמינה למנויי Pro בלבד, החישוב בשרת
+api.post('/compare', requirePro, express.json({ limit: '300kb' }), (req, res) => {
+  try {
+    res.json({ ok: true, ...compareSlips(req.body) });
+  } catch (e) {
+    res.status(400).json({ error: 'BAD_INPUT', message: 'נדרשים לפחות שני תלושים תקינים (עד 12).' });
+  }
 });
 
 app.use('/api', api);

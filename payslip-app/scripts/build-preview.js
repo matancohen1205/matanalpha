@@ -26,13 +26,20 @@ const header = between(index, '<header class="site-header">', '</header>');
 const footer = between(index, '<footer class="site-footer">', '</footer>');
 const homeMain = between(index, '<main id="main">', '</main>');
 
-const legal = ['privacy', 'terms', 'accessibility']
-  .map((n) => {
-    const art = between(pub(n + '.html'), '<article class="prose">', '</article>');
-    return `<section class="container legal-view" id="view-${n}" hidden>
+const LEGAL = ['privacy', 'terms', 'accessibility'];
+const TOOLS = ['calculator', 'credits', 'compare', 'pricing'];
+const VIEWS_ALL = LEGAL.concat(TOOLS);
+const legal = LEGAL.map((n) => {
+  const art = between(pub(n + '.html'), '<article class="prose">', '</article>');
+  return `<section class="container legal-view" id="view-${n}" hidden>
       <p><a href="#" class="back-link">← חזרה לדף הראשי</a></p>${art}</section>`;
-  })
-  .join('\n');
+}).join('\n');
+const tools = TOOLS.map((n) => {
+  const main = between(pub(n + '.html'), '<main id="main" class="container tool">', '</main>')
+    .replace('<main id="main" class="container tool">', '<div class="tool">')
+    .replace(/<\/main>$/, '</div>');
+  return `<section class="container tool-view" id="view-${n}" hidden>${main}</section>`;
+}).join('\n');
 
 let appJs = pub('js/app.js');
 appJs = patch(
@@ -46,6 +53,8 @@ const shim = `
 (function () {
   var G = (function () { var module = { exports: {} }; ${src('glossary.js')}\n return module.exports; })();
   var A = (function () { var module = { exports: {} }; var require = function () { return G; }; ${src('analyzer.js')}\n return module.exports; })();
+  var C = (function () { var module = { exports: {} }; ${src('compare.js')}\n return module.exports; })();
+  var proOn = false;
   var realFetch = window.fetch ? window.fetch.bind(window) : null;
   function json(status, body) {
     return Promise.resolve(new Response(JSON.stringify(body), { status: status, headers: { 'Content-Type': 'application/json' } }));
@@ -59,6 +68,14 @@ const shim = `
       try { text = JSON.parse(opts.body).text || ''; } catch (e) {}
       return json(200, Object.assign({ ok: true, source: 'text' }, A.analyzePayslip(text)));
     }
+    if (url === '/api/billing/me') return json(200, { pro: proOn, configured: false, devUnlock: true, priceLabel: '19.90 ₪ לחודש' });
+    if (url === '/api/billing/dev-activate') { proOn = true; return json(200, { pro: true }); }
+    if (url === '/api/billing/logout') { proOn = false; return json(200, { pro: false }); }
+    if (url === '/api/billing/checkout' || url === '/api/billing/portal' || url === '/api/billing/activate') return json(503, { error: 'PREVIEW', message: 'התשלום אינו פעיל בתצוגה המקדימה.' });
+    if (url === '/api/compare') {
+      if (!proOn) return json(402, { error: 'PRO_REQUIRED' });
+      try { return json(200, Object.assign({ ok: true }, C.compareSlips(JSON.parse(opts.body)))); } catch (e) { return json(400, { message: 'נדרשים לפחות שני תלושים תקינים.' }); }
+    }
     if (url === '/api/analyze') {
       return json(422, { error: 'PREVIEW', message: 'בתצוגה המקדימה אין שרת סריקה, ולכן לא נשלח ולא נקרא שום קובץ. הדביקו טקסט בלשונית "הדבקת טקסט" או לחצו "נסו עם תלוש לדוגמה". בגרסה האמיתית הקובץ נסרק בשרת.' });
     }
@@ -66,7 +83,7 @@ const shim = `
   };
 
   /* ניווט בין הדף הראשי לדפים המשפטיים באמצעות #עוגן */
-  var VIEWS = ['privacy', 'terms', 'accessibility'];
+  var VIEWS = ${JSON.stringify(VIEWS_ALL)};
   var home = document.getElementById('home-view');
   function route() {
     var id = (location.hash || '').replace('#', '');
@@ -86,22 +103,24 @@ let body = `${header}
   <aside class="preview-note container" role="note"><strong>תצוגה מקדימה.</strong> הסריקה האמיתית (OCR ו-PDF) רצה בשרת ולכן לא זמינה כאן. אפשר ללחוץ "נסו עם תלוש לדוגמה" או להדביק טקסט. הכול נשאר בדפדפן שלכם.</aside>
   ${homeMain}
 </div>
-<main class="container">${legal}</main>
+<main class="container-wrap">${legal}
+${tools}</main>
 ${footer}`;
-body = patch(body, 'href="/privacy.html"', 'href="#privacy"');
-body = patch(body, 'href="/terms.html"', 'href="#terms"');
-body = patch(body, 'href="/accessibility.html"', 'href="#accessibility"');
+VIEWS_ALL.forEach((n) => { body = body.split(`href="/${n}.html"`).join(`href="#${n}"`); });
 body = patch(body, 'href="/#', 'href="#');
 body = patch(body, 'href="/"', 'href="#"');
 body = patch(body, ' target="_blank" rel="noopener"', '');
 body = patch(body, '<main id="main">', '<div id="main">').replace('</main>\n</div>', '</div>\n</div>');
+body = body.replace(/<a class="nav-link" href="#">[^<]*<\/a>/, (m) => m);
 
 const css =
   pub('css/style.css') +
   `
 .preview-note{margin-top:1rem;padding:.7rem 1rem;border-radius:12px;border:1px dashed var(--primary);background:color-mix(in srgb,var(--primary) 8%,transparent);font-size:.93rem}
 .back-link{font-weight:700}
-.legal-view{padding-block:1.5rem}
+.legal-view,.tool-view{padding-block:1.5rem}
+.container-wrap{display:block}
+.tool-view .tool{padding-block:.5rem}
 `;
 
 const out = `<title>תלוש בעברית</title>
@@ -117,8 +136,14 @@ ${body}
 </div>
 <script>${pub('js/theme-init.js')}</script>
 <script>${shim}</script>
+<script>${pub('js/tax-core.js')}</script>
+<script>${pub('js/util.js')}</script>
 <script>${commonJs}</script>
 <script>${appJs}</script>
+<script>${pub('js/calc.js')}</script>
+<script>${pub('js/credits.js')}</script>
+<script>${pub('js/compare.js').split("href: '/pricing.html'").join("href: '#pricing'")}</script>
+<script>${pub('js/pricing.js').split("href: '/compare.html'").join("href: '#compare'")}</script>
 <script>document.querySelectorAll('#year').forEach(function(e){e.textContent=new Date().getFullYear();});</script>
 `;
 fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
