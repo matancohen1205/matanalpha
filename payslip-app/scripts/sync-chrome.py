@@ -11,13 +11,18 @@ HEADER = '''<header class="site-header">
       <nav class="nav" aria-label="ניווט ראשי">
         <a class="nav-link" href="/">הסבר תלוש</a>
         <a class="nav-link" href="/calculator.html">מחשבון</a>
-        <a class="nav-link" href="/credits.html">נקודות זיכוי</a>
         <a class="nav-link" href="/compare.html">השוואה</a>
-        <a class="nav-link" href="/rights.html">זכויות</a>
-        <a class="nav-link" href="/whatsapp.html">וואטסאפ</a>
         <a class="nav-link" href="/pricing.html">מנוי Pro</a>
-        <a class="nav-link" href="/about.html">מי אנחנו</a>
-        <a class="nav-link" href="/contact.html">צור קשר</a>
+        <details class="nav-more">
+          <summary class="nav-link">עוד</summary>
+          <div class="nav-menu">
+            <a href="/credits.html">נקודות זיכוי</a>
+            <a href="/rights.html">זכויות</a>
+            <a href="/whatsapp.html">וואטסאפ</a>
+            <a href="/about.html">מי אנחנו</a>
+            <a href="/contact.html">צור קשר</a>
+          </div>
+        </details>
       </nav>
       <span id="pro-badge" class="pro-badge" hidden>Pro</span>
       <a id="account-link" class="icon-btn" href="/account.html" aria-label="החשבון שלי" title="החשבון שלי"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></a>

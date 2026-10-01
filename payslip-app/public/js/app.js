@@ -601,7 +601,8 @@
   }
 
   /* ---------- מילון מונחים ---------- */
-  var gl = { all: [], filter: 'all', q: '' };
+  var gl = { all: [], filter: 'all', q: '', expanded: false };
+  var GL_LIMIT = 8;
   function renderGlossary() {
     var box = $('glossary-list');
     box.replaceChildren();
@@ -610,7 +611,8 @@
       return !gl.q || (g.title + g.what).indexOf(gl.q) !== -1;
     });
     if (!list.length) { box.append(h('p', { class: 'empty', text: 'לא נמצא מונח.' })); return; }
-    list.forEach(function (g) {
+    var limited = !gl.expanded && gl.filter === 'all' && !gl.q && list.length > GL_LIMIT;
+    (limited ? list.slice(0, GL_LIMIT) : list).forEach(function (g) {
       box.append(
         h('details', { class: 'faq' }, [
           h('summary', {}, [h('span', { class: 'badge ' + g.type, text: TYPE_LABEL[g.type] }), document.createTextNode(' ' + g.title)]),
@@ -619,6 +621,7 @@
         ])
       );
     });
+    if (limited) box.append(h('button', { class: 'btn btn-ghost', type: 'button', text: 'הצגת כל המונחים (' + list.length + ')', onclick: function () { gl.expanded = true; renderGlossary(); } }));
   }
   fetch('/api/glossary').then(function (r) { return r.json(); }).then(function (data) {
     gl.all = data;

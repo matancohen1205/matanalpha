@@ -26,13 +26,18 @@
       <nav class="nav" aria-label="ניווט ראשי">
         <a class="nav-link" href="/">הסבר תלוש</a>
         <a class="nav-link" href="/calculator.html">מחשבון</a>
-        <a class="nav-link" href="/credits.html">נקודות זיכוי</a>
         <a class="nav-link" href="/compare.html">השוואה</a>
-        <a class="nav-link" href="/rights.html">זכויות</a>
-        <a class="nav-link" href="/whatsapp.html">וואטסאפ</a>
         <a class="nav-link" href="/pricing.html">מנוי Pro</a>
-        <a class="nav-link" href="/about.html">מי אנחנו</a>
-        <a class="nav-link" href="/contact.html">צור קשר</a>
+        <details class="nav-more">
+          <summary class="nav-link">עוד</summary>
+          <div class="nav-menu">
+            <a href="/credits.html">נקודות זיכוי</a>
+            <a href="/rights.html">זכויות</a>
+            <a href="/whatsapp.html">וואטסאפ</a>
+            <a href="/about.html">מי אנחנו</a>
+            <a href="/contact.html">צור קשר</a>
+          </div>
+        </details>
       </nav>
       <span id="pro-badge" class="pro-badge" hidden>Pro</span>
       <a id="account-link" class="icon-btn" href="/account.html" aria-label="החשבון שלי" title="החשבון שלי"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></a>
@@ -44,7 +49,7 @@
   </header>
 
   <main id="main">
-    <section class="hero"><div class="blob b1" aria-hidden="true"></div><div class="blob b2" aria-hidden="true"></div>
+    <section class="hero">
       <div class="container hero-grid">
         <div>
           <span class="eyebrow">🔒 הקובץ נמחק מיד אחרי הקריאה</span>
@@ -101,14 +106,6 @@
     </section>
 
 
-    <section class="stats-strip" aria-label="במספרים">
-      <div class="container stats-row">
-        <div class="stat-pill"><strong class="count" data-to="35">35</strong><span>מונחי שכר מוסברים</span></div>
-        <div class="stat-pill"><strong class="count" data-to="4">4</strong><span>כלים לשכר שלכם</span></div>
-        <div class="stat-pill"><strong class="count" data-to="0">0</strong><span>תלושים נשמרים אצלנו</span></div>
-        <div class="stat-pill"><strong class="count" data-to="12">12</strong><span>תלושים להשוואה (Pro)</span></div>
-      </div>
-    </section>
 
     <section id="video" class="section video-section" aria-labelledby="video-h">
       <div class="container">
@@ -264,27 +261,6 @@
     </section>
 
 
-    <section id="product" class="section gallery-section" aria-labelledby="product-h">
-      <div class="container">
-        <h2 id="product-h">מבט מבפנים</h2>
-        <p class="muted">צילומי מסך אמיתיים מהאתר, עם נתוני דוגמה.</p>
-        <div class="gallery">
-          <div class="g-tabs" role="tablist" aria-label="בחירת מסך">
-            <button class="g-tab" role="tab" aria-selected="true" aria-controls="g-explain" id="gt-explain" type="button">הסבר תלוש</button>
-            <button class="g-tab" role="tab" aria-selected="false" aria-controls="g-calc" id="gt-calc" type="button">מחשבון</button>
-            <button class="g-tab" role="tab" aria-selected="false" aria-controls="g-credits" id="gt-credits" type="button">נקודות זיכוי</button>
-            <button class="g-tab" role="tab" aria-selected="false" aria-controls="g-compare" id="gt-compare" type="button">השוואה <span class="pro-tag">Pro</span></button>
-          </div>
-          <div class="g-frame">
-            <div class="g-bar" aria-hidden="true"><i></i><i></i><i></i></div>
-            <figure class="g-panel" id="g-explain" role="tabpanel" aria-labelledby="gt-explain"><img src="/img/shot-explain.jpg" width="1120" height="700" loading="lazy" alt="מסך תוצאות: סיכום ברוטו וניכויים, תרשים טבעת והסבר לכל סעיף"><figcaption>סיכום, תרשים והסבר לכל סעיף בתלוש. <a href="/">נסו עם תלוש לדוגמה</a></figcaption></figure>
-            <figure class="g-panel" id="g-calc" role="tabpanel" aria-labelledby="gt-calc" hidden><img src="/img/shot-calc.jpg" width="1120" height="640" loading="lazy" alt="מחשבון נטו-ברוטו עם מחוון, פירוט ניכויים וחלוקת הברוטו"><figcaption>מחשבון נטו-ברוטו עם פירוט המס. <a href="/calculator.html">למחשבון</a></figcaption></figure>
-            <figure class="g-panel" id="g-credits" role="tabpanel" aria-labelledby="gt-credits" hidden><img src="/img/shot-credits.jpg" width="1120" height="600" loading="lazy" alt="בדיקת נקודות זיכוי עם השוואה לנקודות שרשומות בתלוש"><figcaption>בדיקה אם חסרות לכם נקודות זיכוי. <a href="/credits.html">לבדיקה</a></figcaption></figure>
-            <figure class="g-panel" id="g-compare" role="tabpanel" aria-labelledby="gt-compare" hidden><img src="/img/shot-compare.jpg" width="1120" height="470" loading="lazy" alt="גרף השוואה בין תלושי חודשים שונים"><figcaption>מעקב אחרי ברוטו, נטו ומס בין חודשים. <a href="/compare.html">להשוואה</a></figcaption></figure>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <section id="tools" class="section">
       <div class="container">
@@ -298,37 +274,8 @@
       </div>
     </section>
 
-    <section id="how" class="section">
-      <div class="container">
-        <h2>איך זה עובד</h2>
-        <div class="grid-3">
-          <div class="card step-card"><div class="num">1</div><h3>מעלים תלוש</h3><p class="muted">PDF או תמונה. הקובץ נשלח בהצפנה ומעובד בזיכרון בלבד.</p></div>
-          <div class="card step-card"><div class="num">2</div><h3>סריקה חכמה</h3><p class="muted">קריאת הטקסט בעברית (OCR) וזיהוי כל סעיף וסכום בתלוש.</p></div>
-          <div class="card step-card"><div class="num">3</div><h3>הסבר לכל סעיף</h3><p class="muted">מה זה, למה זה אצלכם, תרשים אינטראקטיבי והערות על דברים שכדאי לבדוק.</p></div>
-        </div>
-      </div>
-    </section>
 
 
-    <section id="for-whom" class="section" aria-labelledby="who-h">
-      <div class="container">
-        <h2 id="who-h">למי זה מיועד</h2>
-        <div class="grid-3 personas">
-          <article class="card persona">
-            <svg viewBox="0 0 120 90" class="art" aria-hidden="true"><circle cx="60" cy="34" r="16" class="a1"/><path d="M26 82c0-18 15-30 34-30s34 12 34 30" class="a2"/><path d="M82 18l5 5 9-10" class="a3"/></svg>
-            <h3>מי שרוצה להבין</h3><p class="muted">קיבלתם תלוש ולא ברור מה כל שורה? כל מונח מוסבר בשפה פשוטה, עם הקשר לתלוש שלכם.</p>
-          </article>
-          <article class="card persona">
-            <svg viewBox="0 0 120 90" class="art" aria-hidden="true"><rect x="24" y="14" width="54" height="66" rx="6" class="a1"/><path d="M34 34h34M34 46h34M34 58h20" class="a2"/><circle cx="88" cy="58" r="16" class="a4"/><path d="M100 70l12 12" class="a2"/></svg>
-            <h3>מי שבודק שהכול תקין</h3><p class="muted">רוצים לוודא שהמעסיק מנכה ומפריש נכון? התראות על סעיפים שנעלמו, קפיצות במס ופנסיה נמוכה.</p>
-          </article>
-          <article class="card persona">
-            <svg viewBox="0 0 120 90" class="art" aria-hidden="true"><circle cx="40" cy="30" r="12" class="a1"/><circle cx="78" cy="38" r="8" class="a4"/><path d="M18 80c0-14 10-24 22-24s22 10 22 24M62 80c0-10 7-18 16-18s16 8 16 18" class="a2"/></svg>
-            <h3>הורים ומשפחות</h3><p class="muted">ילדים, תואר, שחרור מצה"ל: בדקו אם כל נקודות הזיכוי שמגיעות לכם רשומות, והעריכו כמה כסף זה שווה.</p>
-          </article>
-        </div>
-      </div>
-    </section>
 
     <section id="glossary" class="section">
       <div class="container">

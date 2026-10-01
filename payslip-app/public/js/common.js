@@ -28,6 +28,7 @@
   document.querySelectorAll('.nav-link').forEach(function (a) {
     var path = location.pathname.replace(/\/index\.html$/, '/');
     var href = a.getAttribute('href');
+    if (!href) return;
     if (href === path || (href !== '/' && path === href.replace('.html', ''))) a.setAttribute('aria-current', 'page');
   });
 
@@ -167,4 +168,12 @@
   });
 
   apply();
+})();
+
+/* סגירת תפריט "עוד" בלחיצה בחוץ או Escape */
+(function () {
+  var more = document.querySelector('.nav-more');
+  if (!more) return;
+  document.addEventListener('click', function (e) { if (!more.contains(e.target)) more.open = false; });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') more.open = false; });
 })();
