@@ -1958,3 +1958,5 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { border-color
   .header-inner .lang-select { max-width: 78px; padding-inline: .4rem; }
   .header-inner #theme-toggle { margin-inline-start: 0; }
 }
+.chat-ai-note { margin: 0; padding: 0.4rem 0.9rem 0; background: var(--surface); line-height: 1.4; }
+.chat-panel > div:has(> .chat-form) { display: grid; }

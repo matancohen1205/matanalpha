@@ -13,6 +13,7 @@ const { createBilling } = require('./src/billing');
 const crypto = require('crypto');
 const { createStore } = require('./src/store');
 const { createSupport } = require('./src/support');
+const { createAgent } = require('./src/agent');
 const { createAccounts } = require('./src/accounts');
 const { createWhatsApp, createMetaClient, createDevClient } = require('./src/whatsapp');
 
@@ -202,6 +203,20 @@ function buildSupport(over = {}) {
     ...over,
   });
 }
+// ---------- עוזר האתר מבוסס בינה מלאכותית (Claude) ----------
+function buildAgent(over = {}) {
+  return createAgent({
+    apiKey: process.env.ANTHROPIC_API_KEY,
+    model: process.env.AGENT_MODEL || 'claude-haiku-4-5-20251001',
+    dailyLimit: Number(process.env.AGENT_DAILY_LIMIT) || 2000,
+    config: { priceLabel: billingConfig.priceLabel, priceLabelYearly: billingConfig.priceLabelYearly },
+    ...over,
+  });
+}
+const agentRef = { current: buildAgent() };
+app.setAgent = (over) => { agentRef.current = buildAgent(over); return agentRef.current; }; // לבדיקות
+api.use('/agent', (req, res, next) => agentRef.current.router(req, res, next));
+
 // ---------- חשבונות (כספת מוצפנת בצד לקוח) ----------
 function buildAccounts(over = {}) {
   return createAccounts({

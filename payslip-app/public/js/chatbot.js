@@ -1,4 +1,5 @@
-/* עוזר האתר: ווידג'ט צ'אט מבוסס כללים (ChatKB). שום שאלה לא נשלחת לשרת. */
+/* עוזר האתר: כשמוגדר מפתח בשרת, השיחה מנוהלת על ידי סוכן בינה מלאכותית (/api/agent/chat) עם זיכרון שיחה.
+   אחרת, או בכשל, פועל עוזר מבוסס כללים (ChatKB) בדפדפן בלבד. */
 (function () {
   'use strict';
   if (!window.ChatKB || !window.PS) return;
@@ -9,6 +10,8 @@
   var glossary = null;
   var config = null;
   var opened = false;
+  var agentOn = false;
+  var waiting = false;
 
   var ss = PS.store('session');
   try { log = JSON.parse(ss.get(KEY) || '[]'); } catch (e) { log = []; }
@@ -26,7 +29,7 @@
   var closeBtn = h('button', { class: 'icon-btn chat-x', type: 'button', 'aria-label': 'סגירת הצ\'אט', text: '✕' });
   var panel = h('section', { class: 'chat-panel', id: 'chat-panel', role: 'dialog', 'aria-label': 'עוזר האתר', dir: 'rtl', lang: 'he', hidden: 'hidden' }, [
     h('header', {}, [h('div', {}, [h('strong', { text: 'עוזר האתר' }), h('small', { text: 'עונה על שאלות שימוש. לא מחליף ייעוץ מקצועי.' })]), closeBtn]),
-    list, form, h('footer', {}, [human, h('a', { href: KB.URL.privacy, text: 'פרטיות' })]),
+    list, h('div', {}, [h('p', { class: 'chat-ai-note muted small', id: 'chat-ai-note', hidden: 'hidden', text: 'העוזר פועל בבינה מלאכותית. ההודעות נשלחות לספק AI לצורך מענה ואינן נשמרות אצלנו. אל תכתבו פרטים אישיים.' }), form]), h('footer', {}, [human, h('a', { href: KB.URL.privacy, text: 'פרטיות' })]),
   ]);
   document.body.append(panel, fab, hint);
 
@@ -88,10 +91,39 @@
   }
 
   /* ---------- שיחה ---------- */
+  function agentMessages() {
+    return log.filter(function (m) { return (m.from === 'me' || m.from === 'bot') && m.text; })
+      .map(function (m) { return { role: m.from === 'me' ? 'user' : 'assistant', content: m.text }; });
+  }
+
+  function askAgent(text) {
+    waiting = true; send.disabled = true;
+    var dots = h('div', { class: 'chat-msg bot typing', 'aria-hidden': 'true' }, [h('span'), h('span'), h('span')]);
+    list.append(dots); list.scrollTop = list.scrollHeight;
+    var done = function () { waiting = false; send.disabled = false; dots.remove(); input.focus(); };
+    return fetch('/api/agent/chat', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: agentMessages() }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, status: r.status, body: j }; }); })
+      .then(function (r) {
+        done();
+        if (r.ok && r.body.ok) { say({ from: 'bot', text: r.body.text, actions: r.body.actions || [] }); return true; }
+        if (r.status === 429) { say({ from: 'bot', text: r.body.message || 'נשלחו הרבה הודעות. נסו שוב בעוד כמה דקות.', actions: [KB.CONTACT] }); return true; }
+        return false;
+      })
+      .catch(function () { done(); return false; });
+  }
+
   function ask(text, fromQuick) {
     text = String(text || '').trim();
-    if (!text) return;
+    if (!text || waiting) return;
     say({ from: 'me', text: text });
+    if (agentOn) {
+      askAgent(text).then(function (handled) { if (!handled) answerWithKB(text, fromQuick); });
+      return;
+    }
+    answerWithKB(text, fromQuick);
+  }
+
+  function answerWithKB(text, fromQuick) {
     ensureData().then(function () { return PS.me(); }).then(function (me) {
       var r = KB.match(text, glossary);
       var reply;
@@ -139,6 +171,10 @@
       if (log.length) log.forEach(render); else welcome();
     }
     ensureData();
+    fetch('/api/agent/status').then(function (r) { return r.json(); }).then(function (j) {
+      agentOn = !!j.enabled;
+      document.getElementById('chat-ai-note').hidden = !agentOn;
+    }).catch(function () {});
     setTimeout(function () { input.focus(); }, 50);
   }
   function close() {

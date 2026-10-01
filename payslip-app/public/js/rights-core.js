@@ -60,6 +60,7 @@
     var today = parseDate(p.today) || parseDate(new Date().toISOString().slice(0, 10));
     if (!start) return { error: 'תאריך התחלה לא תקין' };
     if (start > today) return { error: 'תאריך ההתחלה בעתיד' };
+    if ((today - start) / 864e5 > 366 * 60) return { error: 'תאריך ההתחלה רחוק מדי' };
     var perWeek = Number(p.daysPerWeek) === 6 ? 6 : 5;
 
     var completed = 0;

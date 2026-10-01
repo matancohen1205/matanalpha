@@ -55,7 +55,8 @@
       <form class="card" id="rights-form" autocomplete="off">
         <div class="field">
           <label for="r-start">תאריך תחילת עבודה אצל המעסיק</label>
-          <input id="r-start" type="date" required>
+          <input id="r-start" type="date" required aria-describedby="r-echo">
+          <small class="muted" id="r-echo" aria-live="polite"></small>
           <small class="err" id="r-err" role="alert"></small>
         </div>
         <fieldset>

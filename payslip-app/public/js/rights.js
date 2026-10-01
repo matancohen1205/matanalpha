@@ -8,6 +8,18 @@
 
   var today = new Date().toISOString().slice(0, 10);
   $('r-start').max = today;
+  $('r-start').min = String(Number(today.slice(0, 4)) - 60) + today.slice(4);
+  var LOCALES = { he: 'he-IL', en: 'en-GB', ru: 'ru-RU', ar: 'ar' };
+  // מציגים את התאריך בנוסח מילולי כדי שהמשתמש יראה איך הוא פוענח (סדר יום/חודש משתנה בין מכשירים)
+  function echoDate(v) {
+    var el = $('r-echo');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) { el.textContent = ''; return; }
+    var lang = (window.PSI18n && PSI18n.lang()) || 'he';
+    var d = new Date(v + 'T12:00:00');
+    if (isNaN(d)) { el.textContent = ''; return; }
+    var label = window.PSI18n ? PSI18n.t('התאריך שהוזן') : 'התאריך שהוזן';
+    el.textContent = label + ': ' + d.toLocaleDateString(LOCALES[lang] || 'he-IL', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
   var prev = saved.get('ps-rights-start');
   if (prev && /^\d{4}-\d{2}-\d{2}$/.test(prev)) $('r-start').value = prev;
   $('r-rate').value = saved.get('ps-rights-rate') || R.RIGHTS_DATA.recuperationRate;
@@ -19,6 +31,7 @@
 
   function render() {
     var start = $('r-start').value;
+    echoDate(start);
     var week = Number(document.querySelector('input[name="week"]:checked').value);
     var out = $('r-out');
     out.replaceChildren();
