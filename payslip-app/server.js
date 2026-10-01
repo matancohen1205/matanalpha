@@ -11,6 +11,8 @@ const { GLOSSARY } = require('./src/glossary');
 const { compareSlips } = require('./src/compare');
 const { createBilling } = require('./src/billing');
 const crypto = require('crypto');
+const { createStore } = require('./src/store');
+const { createWhatsApp, createMetaClient, createDevClient } = require('./src/whatsapp');
 
 const PORT = Number(process.env.PORT) || 3000;
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
@@ -95,6 +97,33 @@ const billingRef = { current: createBilling(billingConfig) };
 app.setBilling = (opts) => { billingRef.current = createBilling({ ...billingConfig, ...opts }); }; // לבדיקות
 api.use('/billing', (req, res, next) => (req.method === 'POST' && req.path !== '/dev-activate' ? heavy : (q, r, n) => n())(req, res, () => billingRef.current.router(req, res, next)));
 const requirePro = (req, res, next) => billingRef.current.requirePro(req, res, next);
+
+// ---------- וואטסאפ (Meta Cloud API) ----------
+const waEnv = process.env;
+const waReal = !!(waEnv.WA_ACCESS_TOKEN && waEnv.WA_PHONE_NUMBER_ID && waEnv.WA_BUSINESS_NUMBER);
+if (isProd && waReal && (!waEnv.WA_DATA_KEY || !waEnv.WA_APP_SECRET || !waEnv.WA_VERIFY_TOKEN || !waEnv.WA_DB_PATH)) {
+  throw new Error('WA_DATA_KEY, WA_APP_SECRET, WA_VERIFY_TOKEN and WA_DB_PATH are required when WhatsApp is enabled in production');
+}
+const waStore = createStore({ path: waEnv.WA_DB_PATH || ':memory:', key: waEnv.WA_DATA_KEY });
+function buildWhatsApp(over = {}) {
+  return createWhatsApp({
+    store: waStore,
+    client: waReal ? createMetaClient({ phoneNumberId: waEnv.WA_PHONE_NUMBER_ID, token: waEnv.WA_ACCESS_TOKEN }) : isProd ? null : createDevClient(),
+    secret: tokenSecret,
+    businessNumber: waEnv.WA_BUSINESS_NUMBER || (isProd ? '' : '972500000000'),
+    verifyToken: waEnv.WA_VERIFY_TOKEN,
+    appSecret: waEnv.WA_APP_SECRET,
+    siteUrl: billingConfig.publicUrl,
+    devUnlock: billingConfig.devUnlock,
+    devEndpoints: !isProd && waEnv.WA_DEV === '1',
+    getAuth: (req) => billingRef.current.getAuth(req),
+    isPro: (cid) => billingRef.current.isProCid(cid),
+    ...over,
+  });
+}
+const waRef = { current: buildWhatsApp() };
+app.setWhatsApp = (over) => { waRef.current = buildWhatsApp(over); return waRef.current; }; // לבדיקות
+api.use('/whatsapp', (req, res, next) => waRef.current.router(req, res, next));
 
 // קבצים נשמרים בזיכרון בלבד, ללא כתיבה לדיסק
 const upload = multer({
@@ -185,6 +214,14 @@ app.use((err, req, res, next) => {
 if (require.main === module) {
   ensureLangDir();
   app.listen(PORT, () => console.log(`Payslip app listening on http://localhost:${PORT}`));
+  if (waEnv.WA_REMINDER_TEMPLATE && waRef.current.configured) {
+    // תזמון יומי של תזכורות. מניחים מופע שרת יחיד.
+    const tick = () => {
+      waStore.cleanup();
+      waRef.current.engine.runReminders({ template: waEnv.WA_REMINDER_TEMPLATE }).catch((e) => console.error('reminders failed:', e.name));
+    };
+    setInterval(tick, 6 * 3600 * 1000).unref();
+  }
 }
 
 module.exports = app;

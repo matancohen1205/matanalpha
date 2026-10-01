@@ -24,6 +24,22 @@ npm test
 4. לבדיקה מקומית בלי תשלום: `PRO_DEV_UNLOCK=1 npm start` (מושבת ב-production).
 5. מגבלה ידועה: אין שחזור גישה אוטומטי במכשיר חדש (הגישה נשמרת בעוגייה). אפשר להוסיף שחזור באימות מייל.
 
+## בוט וואטסאפ (Pro)
+מנוי Pro יכול לחבר וואטסאפ בעמוד `/whatsapp.html`, לשלוח לבוט תמונה/PDF של תלוש ולקבל סיכום והתראות על חריגות לעומת חודשים קודמים.
+
+**הקמה (Meta WhatsApp Cloud API):**
+1. ב-[Meta for Developers](https://developers.facebook.com) ליצור אפליקציית Business, להוסיף את מוצר WhatsApp ולחבר מספר עסקי.
+2. ליצור System User עם אסימון קבוע והרשאת `whatsapp_business_messaging`, ולמלא `WA_PHONE_NUMBER_ID`, `WA_ACCESS_TOKEN`, `WA_BUSINESS_NUMBER`, `WA_APP_SECRET`.
+3. להגדיר Webhook בכתובת `https://<הדומיין>/api/whatsapp/webhook` עם `WA_VERIFY_TOKEN`, ולהירשם לשדה `messages`.
+4. לייצר `WA_DATA_KEY` (`openssl rand -hex 32`) ולהקצות כרך קבוע ל-`WA_DB_PATH` (ב-Docker: `/data`).
+5. אופציונלי: תזכורת חודשית דורשת תבנית הודעה מאושרת ב-Meta (קטגוריית Utility). שם התבנית ב-`WA_REMINDER_TEMPLATE`.
+
+**איך זה עובד:** האתר מנפיק קישור `wa.me` עם הודעת חיבור חתומה וחד-פעמית (30 דקות). שליחתה מהטלפון מוכיחה בעלות על המספר ומקשרת אותו ללקוח ה-Stripe. התלוש נקרא בזיכרון ונמחק; נשמרים רק מספר טלפון מוצפן וסכומים לפי סעיף (עד 12 חודשים). "הפסק" בוואטסאפ או ניתוק באתר מוחקים הכול.
+
+**לפיתוח מקומי בלי Meta:** `PRO_DEV_UNLOCK=1 WA_DEV=1 npm start`. הודעות יוצאות מודפסות לקונסול, ו-`POST /api/whatsapp/dev-inbound {from,text}` מדמה הודעה נכנסת.
+
+**הערות:** האחסון הוא SQLite מובנה (`node:sqlite`, מסומן ניסיוני ב-Node 22). המתזמן מניח מופע שרת יחיד. כדאי לגבות את `WA_DB_PATH` ולשמור את `WA_DATA_KEY` בנפרד: בלעדיו אי אפשר לפענח את הנתונים.
+
 ## אבטחה ופרטיות (מה כבר ממומש)
 - קבצים נשמרים **בזיכרון בלבד** (multer memoryStorage), לא נכתבים לדיסק, ולא נרשמים ללוג.
 - בדיקת סוג קובץ לפי תוכן (magic bytes), מגבלת גודל 8MB, קובץ אחד לבקשה, עד 6 עמודים ב-PDF.

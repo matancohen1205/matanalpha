@@ -170,7 +170,24 @@ function createBilling(opts) {
     res.status(402).json({ error: 'PRO_REQUIRED', message: 'הפיצ\'ר זמין למנויי Pro.' });
   }
 
-  return { router, requirePro };
+  const proCache = new Map();
+  /** האם ללקוח יש מנוי פעיל (עם מטמון של 6 שעות), לשימוש שירותים ברקע כמו וואטסאפ */
+  async function isProCid(cid) {
+    if (cid === 'dev') return devUnlock;
+    if (!stripe || !cid) return false;
+    const hit = proCache.get(cid);
+    if (hit && hit.until > Date.now()) return hit.value;
+    let value = false;
+    try {
+      value = await hasActiveSubscription(stripe, cid);
+    } catch {
+      return hit ? hit.value : false;
+    }
+    proCache.set(cid, { value, until: Date.now() + 6 * 3600 * 1000 });
+    return value;
+  }
+
+  return { router, requirePro, getAuth, isProCid };
 }
 
 async function hasActiveSubscription(stripe, customerId) {

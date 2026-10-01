@@ -27,7 +27,7 @@ const footer = between(index, '<footer class="site-footer">', '</footer>');
 const homeMain = between(index, '<main id="main">', '</main>');
 
 const LEGAL = ['privacy', 'terms', 'accessibility'];
-const TOOLS = ['calculator', 'credits', 'compare', 'pricing'];
+const TOOLS = ['calculator', 'credits', 'compare', 'pricing', 'whatsapp'];
 const VIEWS_ALL = LEGAL.concat(TOOLS);
 const legal = LEGAL.map((n) => {
   const art = between(pub(n + '.html'), '<article class="prose">', '</article>');
@@ -54,7 +54,7 @@ const shim = `
   var G = (function () { var module = { exports: {} }; ${src('glossary.js')}\n return module.exports; })();
   var A = (function () { var module = { exports: {} }; var require = function () { return G; }; ${src('analyzer.js')}\n return module.exports; })();
   var C = (function () { var module = { exports: {} }; ${src('compare.js')}\n return module.exports; })();
-  var proOn = false;
+  var proOn = false, waLinked = false, waLinking = false, waPolls = 0;
   var realFetch = window.fetch ? window.fetch.bind(window) : null;
   function json(status, body) {
     return Promise.resolve(new Response(JSON.stringify(body), { status: status, headers: { 'Content-Type': 'application/json' } }));
@@ -68,6 +68,9 @@ const shim = `
       try { text = JSON.parse(opts.body).text || ''; } catch (e) {}
       return json(200, Object.assign({ ok: true, source: 'text' }, A.analyzePayslip(text)));
     }
+    if (url === '/api/whatsapp/status') { waPolls += waLinking ? 1 : 0; return json(200, { configured: true, pro: proOn, linked: waLinked || waPolls >= 2, phone: '•••••••567' }); }
+    if (url === '/api/whatsapp/link') { if (!proOn) return json(402, { message: 'החיבור זמין למנויי Pro.' }); waLinking = true; return json(200, { url: '#whatsapp', expiresInMinutes: 30 }); }
+    if (url === '/api/whatsapp/unlink') { waLinked = false; waLinking = false; waPolls = -99; return json(200, { linked: false }); }
     if (url === '/api/billing/me') return json(200, { pro: proOn, configured: false, devUnlock: true, priceLabel: '19.90 ₪ לחודש' });
     if (url === '/api/billing/dev-activate') { proOn = true; return json(200, { pro: true }); }
     if (url === '/api/billing/logout') { proOn = false; return json(200, { pro: false }); }
@@ -90,6 +93,7 @@ const shim = `
     var isLegal = VIEWS.indexOf(id) >= 0;
     home.hidden = isLegal;
     VIEWS.forEach(function (v) { document.getElementById('view-' + v).hidden = v !== id; });
+    if (id === 'whatsapp' && window.PS_WA_REFRESH) window.PS_WA_REFRESH();
     var target = isLegal ? document.getElementById('view-' + id) : id ? document.getElementById(id) : null;
     if (target) target.scrollIntoView(); else window.scrollTo(0, 0);
   }
@@ -146,6 +150,7 @@ ${body}
 <script>${pub('js/calc.js')}</script>
 <script>${pub('js/credits.js')}</script>
 <script>${pub('js/compare.js').split("href: '/pricing.html'").join("href: '#pricing'")}</script>
+<script>${pub('js/wa.js').split("window.open(r.body.url, '_blank', 'noopener');").join('').split("href: '/pricing.html'").join("href: '#pricing'")}</script>
 <script>${pub('js/pricing.js').split("href: '/compare.html'").join("href: '#compare'")}</script>
 <script>document.querySelectorAll('#year').forEach(function(e){e.textContent=new Date().getFullYear();});</script>
 `;

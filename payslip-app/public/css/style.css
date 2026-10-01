@@ -1483,3 +1483,39 @@ body.modal-open {
 @keyframes sheet-in {
   from { transform: translateY(40px); opacity: 0; }
 }
+
+/* ===== וואטסאפ ===== */
+.wa-steps {
+  margin: 1rem 0 0;
+  padding-inline-start: 1.3rem;
+  display: grid;
+  gap: 0.4rem;
+}
+.ltr-num {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+}
+.chat {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem;
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+.bubble {
+  max-width: 92%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 12px;
+  line-height: 1.5;
+  font-size: 0.95rem;
+  border: 1px solid var(--border);
+}
+.bubble.out {
+  justify-self: start;
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface));
+}
+.bubble.in {
+  justify-self: end;
+  background: var(--surface);
+}

@@ -46,7 +46,7 @@
       h('ul', { class: 'promo-list' }, [
         h('li', { text: 'גרף מגמות וטבלת שינויים בין חודשים' }),
         h('li', { text: 'התראה על סעיף שנעלם או על קפיצה במס' }),
-        h('li', { text: 'ייצוא ההשוואה לקובץ CSV' }),
+        h('li', { text: 'התראות בוואטסאפ: שולחים תלוש ומקבלים סיכום' }),
       ]),
       h('p', { class: 'promo-price', text: (m && m.priceLabel) || '' }),
       h('div', { class: 'promo-actions' }, [cta, later]),

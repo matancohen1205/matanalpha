@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="he" dir="rtl" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>התראות בוואטסאפ | תלוש בעברית</title>
+  <meta name="description" content="שלחו את התלוש לבוט בוואטסאפ וקבלו סיכום והתראות על דברים חריגים, בלי להיכנס לאתר.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#3b5bdb">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/theme-init.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">דלגו לתוכן הראשי</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/" aria-label="דף הבית">
+        <img src="/logo-mark.svg" alt="" width="34" height="34">
+        <span>תלוש בעברית</span>
+      </a>
+      <nav class="nav" aria-label="ניווט ראשי">
+        <a class="nav-link" href="/">הסבר תלוש</a>
+        <a class="nav-link" href="/calculator.html">מחשבון נטו-ברוטו</a>
+        <a class="nav-link" href="/credits.html">נקודות זיכוי</a>
+        <a class="nav-link" href="/compare.html">השוואת תלושים</a>
+        <a class="nav-link" href="/whatsapp.html">וואטסאפ</a>
+        <a class="nav-link" href="/pricing.html">מנוי Pro</a>
+      </nav>
+      <span id="pro-badge" class="pro-badge" hidden>Pro</span>
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="מעבר למצב כהה" aria-pressed="false">
+        <svg class="theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="theme-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="main" class="container tool">
+    <div class="title-row"><h1>התראות בוואטסאפ</h1><span class="pro-tag">Pro</span></div>
+    <p class="lead muted">שולחים את התלוש החודשי לבוט שלנו בוואטסאפ, ומקבלים תוך שניות סיכום והתראה על כל דבר חריג, בהשוואה לחודשים הקודמים.</p>
+
+    <div class="tool-grid">
+      <section class="card" aria-labelledby="wa-connect-h">
+        <h2 id="wa-connect-h">חיבור הוואטסאפ</h2>
+        <div id="wa-state" aria-live="polite"><p class="muted">טוען…</p></div>
+
+        <ol class="wa-steps">
+          <li>מאשרים ולוחצים על "חיבור וואטסאפ".</li>
+          <li>נפתח צ'אט עם הבוט והודעת חיבור מוכנה. פשוט שולחים אותה.</li>
+          <li>שולחים לבוט תמונה או PDF של התלוש, ומקבלים סיכום והתראות.</li>
+        </ol>
+      </section>
+
+      <section class="card" aria-labelledby="wa-example-h">
+        <h2 id="wa-example-h">איך זה נראה</h2>
+        <p class="muted small">דוגמה לתשובת הבוט:</p>
+        <div class="chat" role="img" aria-label="דוגמה לשיחה: המשתמש שולח תלוש והבוט מחזיר סיכום והתראות">
+          <div class="bubble out">📎 תלוש_ספטמבר.jpg</div>
+          <div class="bubble in">
+            <strong>סיכום תלוש 09/2025</strong><br>
+            ברוטו: 14,000 ₪<br>
+            ניכויים: 4,810 ₪<br>
+            נטו: 9,190 ₪<br><br>
+            <strong>⚠️ דברים שכדאי לבדוק:</strong><br>
+            • "החזר נסיעות" לא מופיע בתלוש האחרון<br>
+            • שיעור מס ההכנסה השתנה ב-09/2025<br>
+            • מספר נקודות הזיכוי השתנה בין התלושים
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="section-sm">
+      <h2>מה נשמר ומה לא</h2>
+      <ul class="prose-list">
+        <li>התלוש עצמו, התמונה או ה-PDF, לא נשמרים. הם נקראים בזיכרון ונמחקים מיד.</li>
+        <li>נשמרים רק מספר הטלפון שלכם (מוצפן) וסכומים מסוכמים לפי סעיף, עד 12 חודשים, כדי להשוות בין חודשים. לא נשמרים שמות, מספרי זהות או טקסט מהתלוש.</li>
+        <li>תזכורת חודשית יכולה להישלח אם לא שלחתם תלוש חודש. כדי להפסיק הכול שולחים לבוט <strong>הפסק</strong>, או לוחצים כאן על ניתוק. כל הנתונים נמחקים מיד.</li>
+        <li>ההודעות עוברות דרך וואטסאפ (Meta) לפי תנאי השירות שלה. לא נשלח לכם תוכן שיווקי.</li>
+      </ul>
+    </section>
+  </main>
+
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© <span id="year">2025</span> תלוש בעברית. ההסברים והחישובים כלליים ואינם ייעוץ מקצועי.</span>
+      <nav class="footer-links" aria-label="קישורים נוספים">
+        <a href="/#glossary">מילון מונחים</a>
+        <a href="/privacy.html">מדיניות פרטיות</a>
+        <a href="/terms.html">תנאי שימוש</a>
+        <a href="/accessibility.html">הצהרת נגישות</a>
+      </nav>
+    </div>
+  </footer>
+  <script src="/js/util.js"></script>
+  <script src="/js/common.js"></script>
+  <script src="/js/promo.js"></script>
+  <script src="/js/wa.js"></script>
+  <script src="/js/year.js"></script>
+</body>
+</html>
