@@ -1,0 +1,58 @@
+# Render Blueprint: פריסה אוטומטית של האתר (תיקיית payslip-app) כשירות Docker עם כרך קבוע.
+# שימוש: Render Dashboard -> New -> Blueprint -> בחירת הריפו והענף.
+services:
+  - type: web
+    name: tlush-be-ivrit
+    runtime: docker
+    rootDir: payslip-app
+    dockerfilePath: ./Dockerfile
+    plan: starter            # כרך קבוע זמין רק בתוכנית בתשלום
+    region: frankfurt        # הקרוב ביותר לישראל
+    healthCheckPath: /healthz
+    autoDeploy: true
+    disk:
+      name: app-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "1"
+      - key: DB_PATH
+        value: /data/app.db
+      - key: DATA_KEY            # נוצר אוטומטית. חשוב: לא לשנות אחרי שנשמרו נתונים
+        generateValue: true
+      - key: PRO_TOKEN_SECRET
+        generateValue: true
+      # --- חובה לפני קבלת תשלומים (מלאים ב-Dashboard) ---
+      - key: PUBLIC_URL           # אופציונלי: ברירת מחדל היא הכתובת הזמנית של Render
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PRICE_ID
+        sync: false
+      - key: PRICE_LABEL
+        value: 19.90 ₪ לחודש
+      # --- שירות לקוחות ---
+      - key: SUPPORT_EMAIL
+        sync: false
+      - key: SUPPORT_HOURS
+        sync: false
+      - key: SMTP_URL
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      # --- בוט וואטסאפ (אופציונלי) ---
+      - key: WA_PHONE_NUMBER_ID
+        sync: false
+      - key: WA_ACCESS_TOKEN
+        sync: false
+      - key: WA_BUSINESS_NUMBER
+        sync: false
+      - key: WA_APP_SECRET
+        sync: false
+      - key: WA_VERIFY_TOKEN
+        generateValue: true
+      - key: WA_REMINDER_TEMPLATE
+        sync: false

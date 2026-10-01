@@ -13,8 +13,12 @@ const DAY = 24 * 3600 * 1000;
  *  - "תמונות מצב" חודשיות: מזהי סעיפים, סוג וסכום בלבד (מוצפן). אין שמות, אין מספרי זהות, אין טקסט מהתלוש.
  */
 function createStore({ path = ':memory:', key } = {}) {
-  const dataKey = key ? Buffer.from(key, 'hex') : crypto.randomBytes(32);
-  if (dataKey.length !== 32) throw new Error('WA_DATA_KEY must be 32 bytes (64 hex chars)');
+  // מפתח: 64 תווי hex, או כל מחרוזת סודית באורך 32+ תווים (נגזר ב-SHA-256)
+  let dataKey;
+  if (!key) dataKey = crypto.randomBytes(32);
+  else if (/^[0-9a-f]{64}$/i.test(key)) dataKey = Buffer.from(key, 'hex');
+  else if (String(key).length >= 32) dataKey = crypto.createHash('sha256').update(String(key)).digest();
+  else throw new Error('DATA_KEY must be 64 hex chars or a secret string of at least 32 characters');
 
   const db = new DatabaseSync(path);
   db.exec(`

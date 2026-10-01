@@ -89,7 +89,7 @@ const billingConfig = {
   stripe: stripeKey ? require('stripe')(stripeKey) : null,
   secret: tokenSecret,
   priceId: process.env.STRIPE_PRICE_ID,
-  publicUrl: process.env.PUBLIC_URL || `http://localhost:${PORT}`,
+  publicUrl: process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`,
   priceLabel: process.env.PRICE_LABEL || '19.90 ₪ לחודש',
   devUnlock: !isProd && process.env.PRO_DEV_UNLOCK === '1',
   secure: isProd,
