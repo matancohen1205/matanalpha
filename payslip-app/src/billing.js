@@ -106,8 +106,14 @@ function createBilling(opts) {
         line_items: [{ price: priceId, quantity: 1 }],
         success_url: `${publicUrl}/pricing.html?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${publicUrl}/pricing.html?canceled=1`,
+        locale: 'he',
         allow_promotion_codes: true,
         billing_address_collection: 'auto',
+        custom_text: {
+          submit: {
+            message: `בלחיצה על התשלום אתם מאשרים את [תנאי השימוש](${publicUrl}/terms.html) ואת [מדיניות הפרטיות](${publicUrl}/privacy.html). ניתן לבטל בכל עת.`,
+          },
+        },
       });
       res.json({ url: session.url });
     } catch (e) {

@@ -74,7 +74,7 @@ test('מנוי: חסימת Pro, הפעלה דרך Stripe מדומה, והשוו�
   const fakeStripe = {
     checkout: {
       sessions: {
-        create: async () => ({ url: 'https://stripe.test/pay' }),
+        create: async (params) => { fakeStripe.lastCheckout = params; return { url: 'https://stripe.test/pay' }; },
         retrieve: async (id) => ({ id, status: id === 'cs_paid' ? 'complete' : 'open', customer: 'cus_42', created: Date.now() / 1000 }),
       },
     },
@@ -89,6 +89,11 @@ test('מנוי: חסימת Pro, הפעלה דרך Stripe מדומה, והשוו�
     assert.strictEqual((await request(server, 'POST', '/api/compare', slips)).status, 402);
     assert.strictEqual((await request(server, 'GET', '/api/billing/me')).json.pro, false);
     assert.strictEqual((await request(server, 'POST', '/api/billing/checkout', {})).json.url, 'https://stripe.test/pay');
+    const co = fakeStripe.lastCheckout;
+    assert.strictEqual(co.mode, 'subscription');
+    assert.strictEqual(co.locale, 'he');
+    assert.strictEqual(co.line_items[0].price, 'price_x');
+    assert.match(co.success_url, /pricing\.html\?session_id=\{CHECKOUT_SESSION_ID\}$/);
     assert.strictEqual((await request(server, 'POST', '/api/billing/activate', { session_id: 'cs_unpaid' })).status, 402);
     assert.strictEqual((await request(server, 'POST', '/api/billing/activate', { session_id: '../x' })).status, 400);
 
