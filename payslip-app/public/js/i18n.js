@@ -16,6 +16,16 @@
     var t = norm(text);
     if (!t) return null;
     if (Object.prototype.hasOwnProperty.call(dict, t)) return dict[t];
+    // הפשטת מספרים: "מס {n}%" מתאים לכל מספר, והמספרים מוחזרים לפי הסדר
+    var nums = [];
+    var abs = t.replace(/\d+(?:[.,]\d+)*/g, function (m) { nums.push(m); return '{n}'; });
+    if (nums.length && Object.prototype.hasOwnProperty.call(dict, abs)) {
+      var k = 0;
+      return dict[abs].replace(/\{n\}/g, function () { return nums[k++] || ''; });
+    }
+    // "שם סעיף 1,234.00": מתרגמים את השם ומשאירים את המספר
+    var tm = /^(.*\S)\s+(\d[\d,.]*)$/.exec(t);
+    if (tm) { var head = tr(tm[1]); if (head != null) return head + ' ' + tm[2]; }
     for (var i = 0; i < pats.length; i++) {
       var m = pats[i].re.exec(t);
       if (m) {
@@ -80,10 +90,27 @@
     host.insertBefore(sel, theme || null);
   }
 
+  var LEGAL_NOTE = {
+    en: 'This legal page is available in Hebrew only. The Hebrew text is the binding version.',
+    ru: 'Эта юридическая страница доступна только на иврите. Обязательной является версия на иврите.',
+    ar: 'هذه الصفحة القانونية متاحة بالعبرية فقط. النص العبري هو النسخة الملزمة.'
+  };
+  function legalNote() {
+    var art = document.querySelector('article.prose');
+    if (!art || !LEGAL_NOTE[lang] || !/^\/(privacy|terms|accessibility)(\.html)?$/.test(location.pathname)) return;
+    var n = document.createElement('p');
+    n.className = 'draft-note';
+    n.setAttribute('data-no-i18n', '');
+    n.lang = lang; n.dir = LANGS[lang].dir;
+    n.textContent = LEGAL_NOTE[lang];
+    art.insertBefore(n, art.firstChild);
+  }
+
   function apply() {
     var de = document.documentElement;
     de.lang = lang; de.dir = LANGS[lang].dir;
     if (lang === 'he') return;
+    legalNote();
     walk(document.documentElement);
     if (document.title) { var t = tr(document.title); if (t != null) document.title = t; }
     new MutationObserver(function (muts) {
