@@ -266,3 +266,19 @@ test('מסכי /login ו-/signup נטענים', async () => {
     assert.match(r.text, /id="f-register"/);
   }
 });
+
+test('איפוס עם wipe מחייב חומר שחזור תקין ואינו צורך את הקישור כשנכשל', async () => {
+  const mails = [];
+  app.setAccounts({ mailer: { sendMail: async (m) => mails.push(m) }, mailFrom: 'x@y.z' });
+  await register('wipe@example.com', 'wipe-password-12345');
+  await req('POST', '/api/account/forgot', { body: { email: 'wipe@example.com' } });
+  await new Promise((r) => setTimeout(r, 80));
+  const token = mails.find((x) => /reset=/.test(x.text)).text.match(/reset=([\w.-]+)/)[1];
+  const nm = await V.createAccountMaterial('another-pass-12345', 'wipe@example.com');
+  const bad = await req('POST', '/api/account/reset', { body: { token, authKey: nm.authKey, wrappedPw: nm.wrappedPw, wipe: true } });
+  assert.strictEqual(bad.status, 400);
+  const bad2 = await req('POST', '/api/account/reset', { body: { token, authKey: nm.authKey, wrappedPw: nm.wrappedPw, wrappedRec: 'x', wipe: true } });
+  assert.strictEqual(bad2.status, 400);
+  const ok = await req('POST', '/api/account/reset', { body: { token, authKey: nm.authKey, wrappedPw: nm.wrappedPw, wrappedRec: nm.wrappedRec, wipe: true } });
+  assert.strictEqual(ok.status, 200);
+});

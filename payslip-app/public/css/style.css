@@ -1931,3 +1931,30 @@ body { line-height: 1.75; }
   .section { padding: 3rem 0; }
   .hero { padding: 2.5rem 0 2rem; }
 }
+
+/* ===== שדות טקסט אחידים (כולל סיסמה ואימייל) ===== */
+input[type='password'],
+input[type='email'],
+input[type='tel'],
+input[type='search'] {
+  min-height: 46px;
+  padding: 0 0.8rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  width: 100%;
+  direction: ltr;
+  text-align: start;
+}
+input:focus-visible, select:focus-visible, textarea:focus-visible { border-color: var(--primary); }
+
+/* ===== כותרת קומפקטית בנייד: שורה אחת לסמלים, שורה אחת לניווט ===== */
+@media (max-width: 760px) {
+  .header-inner { gap: 0.35rem; padding-block: 0.5rem; }
+  .header-inner .brand { margin-inline-end: auto; font-size: 1rem; gap: .4rem; }
+  .header-inner .nav { order: 5; width: 100%; justify-content: space-between; flex-wrap: nowrap; gap: 0; margin: 0; padding: 0; }
+  .nav a.nav-link, .nav summary.nav-link { padding: 0.4rem 0.5rem; font-size: 0.93rem; white-space: nowrap; }
+  .header-inner .icon-btn { min-width: 40px; min-height: 40px; margin-inline-start: 0; }
+  .header-inner .lang-select { max-width: 78px; padding-inline: .4rem; }
+  .header-inner #theme-toggle { margin-inline-start: 0; }
+}
