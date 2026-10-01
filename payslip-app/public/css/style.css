@@ -1380,3 +1380,106 @@ td.down {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ===== פופ-אפ מנוי ===== */
+.promo-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(10, 16, 32, 0.55);
+  animation: fade-in 0.2s ease;
+}
+.promo {
+  position: relative;
+  width: min(440px, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  display: grid;
+  gap: 0.7rem;
+  padding: 1.6rem 1.4rem 1.2rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  animation: pop-in 0.25s ease;
+  justify-items: start;
+}
+.promo h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+.promo p {
+  margin: 0;
+}
+.promo-x {
+  position: absolute;
+  top: 0.7rem;
+  inset-inline-end: 0.7rem;
+  min-width: 40px;
+  min-height: 40px;
+}
+.promo-list {
+  margin: 0;
+  padding-inline-start: 1.2rem;
+  display: grid;
+  gap: 0.3rem;
+}
+.promo-price {
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+.promo-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.promo-foot {
+  display: grid;
+  gap: 0.2rem;
+  justify-items: start;
+}
+.link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--primary);
+  text-decoration: underline;
+  cursor: pointer;
+  min-height: 32px;
+}
+body.modal-open {
+  overflow: hidden;
+}
+.brand img {
+  width: 34px;
+  height: 34px;
+  display: block;
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+}
+@media (max-width: 600px) {
+  .promo-overlay {
+    place-items: end center;
+    padding: 0;
+  }
+  .promo {
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    padding-bottom: calc(1.2rem + env(safe-area-inset-bottom, 0px));
+    animation-name: sheet-in;
+  }
+  .promo-actions .btn {
+    flex: 1;
+  }
+}
+@keyframes sheet-in {
+  from { transform: translateY(40px); opacity: 0; }
+}

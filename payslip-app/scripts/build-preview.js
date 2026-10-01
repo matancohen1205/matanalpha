@@ -108,6 +108,8 @@ ${tools}</main>
 ${footer}`;
 VIEWS_ALL.forEach((n) => { body = body.split(`href="/${n}.html"`).join(`href="#${n}"`); });
 body = patch(body, 'href="/#', 'href="#');
+const mark = 'data:image/svg+xml;base64,' + fs.readFileSync(path.join(root, 'public', 'logo-mark.svg')).toString('base64');
+body = body.split('src="/logo-mark.svg"').join(`src="${mark}"`);
 body = patch(body, 'href="/"', 'href="#"');
 body = patch(body, ' target="_blank" rel="noopener"', '');
 body = patch(body, '<main id="main">', '<div id="main">').replace('</main>\n</div>', '</div>\n</div>');
@@ -139,6 +141,7 @@ ${body}
 <script>${pub('js/tax-core.js')}</script>
 <script>${pub('js/util.js')}</script>
 <script>${commonJs}</script>
+<script>${pub('js/promo.js').split("href: '/pricing.html'").join("href: '#pricing'")}</script>
 <script>${appJs}</script>
 <script>${pub('js/calc.js')}</script>
 <script>${pub('js/credits.js')}</script>

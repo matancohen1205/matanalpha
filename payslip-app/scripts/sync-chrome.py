@@ -5,7 +5,7 @@ import re, glob, os
 HEADER = '''<header class="site-header">
     <div class="container header-inner">
       <a class="brand" href="/" aria-label="דף הבית">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#3b5bdb"/><path d="M9 7h10l5 5v13a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" fill="#fff"/><path d="M11 15h10M11 19h10M11 23h6" stroke="#3b5bdb" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <img src="/logo-mark.svg" alt="" width="34" height="34">
         <span>תלוש בעברית</span>
       </a>
       <nav class="nav" aria-label="ניווט ראשי">
@@ -35,13 +35,25 @@ FOOTER = '''<footer class="site-footer">
     </div>
   </footer>'''
 
+HEAD_TAGS = '''<meta name="theme-color" content="#3b5bdb">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">'''
+
 root = os.path.join(os.path.dirname(__file__), '..', 'public')
 for f in glob.glob(os.path.join(root, '*.html')):
     s = open(f, encoding='utf-8').read()
     s = re.sub(r'<header class="site-header">.*?</header>', lambda m: HEADER, s, flags=re.S)
     s = re.sub(r'<footer class="site-footer">.*?</footer>', lambda m: FOOTER, s, flags=re.S)
+    # תגיות head: אייקונים, manifest וצבע דפדפן
+    s = re.sub(r'\s*<link rel="icon"[^>]*>', '', s)
+    s = re.sub(r'\s*<meta name="theme-color"[^>]*>|\s*<link rel="manifest"[^>]*>|\s*<link rel="apple-touch-icon"[^>]*>', '', s)
+    s = s.replace('<link rel="stylesheet" href="/css/style.css">', HEAD_TAGS + '\n  <link rel="stylesheet" href="/css/style.css">', 1)
     # סקריפטים משותפים בכל דף
     if '/js/util.js' not in s:
         s = s.replace('<script src="/js/common.js"></script>', '<script src="/js/util.js"></script>\n  <script src="/js/common.js"></script>')
+    if '/js/promo.js' not in s:
+        s = s.replace('<script src="/js/common.js"></script>', '<script src="/js/common.js"></script>\n  <script src="/js/promo.js"></script>')
     open(f, 'w', encoding='utf-8').write(s)
     print('synced', os.path.basename(f))

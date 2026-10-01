@@ -201,6 +201,7 @@
       if (!res.ok) throw new Error(body.message || 'שגיאה בעיבוד הקובץ.');
       state.data = body;
       rememberCredits(body);
+      setTimeout(function () { document.dispatchEvent(new CustomEvent('ps:value')); }, 2500);
       state.data.items.forEach(function (it) { it.origAmount = it.amount; });
       state.filter = 'all';
       state.query = '';

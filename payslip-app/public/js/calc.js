@@ -126,7 +126,9 @@
     }
   }
 
+  var touches = 0;
   function update() {
+    if (++touches === 6) document.dispatchEvent(new CustomEvent('ps:value'));
     render();
     renderCurve();
   }
