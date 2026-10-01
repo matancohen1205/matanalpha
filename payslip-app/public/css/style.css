@@ -1,47 +1,47 @@
 /* ===== טוקנים ===== */
 :root {
-  --bg: #f6f7fb;
+  --bg: #f3f8f5;
   --surface: #ffffff;
-  --surface-2: #eef1f8;
-  --text: #16213a;
-  --muted: #55607a;
-  --border: #d9deec;
-  --primary: #3b5bdb;
+  --surface-2: #e7f1ed;
+  --text: #1c3532;
+  --muted: #4f6a65;
+  --border: #d2e3dc;
+  --primary: #1f7a6d;
   --primary-ink: #ffffff;
-  --accent: #0ca678;
-  --warn: #e8590c;
-  --danger: #c92a2a;
-  --shadow: 0 6px 24px rgba(22, 33, 58, 0.08);
-  --radius: 16px;
+  --accent: #2f9a5f;
+  --warn: #cf7a1f;
+  --danger: #bf392b;
+  --shadow: 0 8px 28px rgba(31, 90, 80, 0.10);
+  --radius: 18px;
   --fs: 1rem;
   --lh: 1.65;
   --font: 'Heebo', 'Assistant', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
-  --c-net: #0ca678;
-  --c-tax: #e8590c;
-  --c-ni: #3b5bdb;
-  --c-health: #ae3ec9;
-  --c-pension: #f59f00;
-  --c-other: #868e96;
+  --c-net: #2f9a5f;
+  --c-tax: #e0883a;
+  --c-ni: #3a86a3;
+  --c-health: #8f6bb8;
+  --c-pension: #d9a63f;
+  --c-other: #8a9d98;
 }
 :root[data-theme='dark'] {
-  --bg: #0e1424;
-  --surface: #172036;
-  --surface-2: #1f2a46;
-  --text: #e8ecf8;
-  --muted: #a3adc7;
-  --border: #2c3858;
-  --primary: #7c93ff;
-  --primary-ink: #0e1424;
-  --accent: #38d9a9;
-  --warn: #ffa94d;
-  --danger: #ff8787;
-  --shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
-  --c-net: #38d9a9;
-  --c-tax: #ff922b;
-  --c-ni: #7c93ff;
-  --c-health: #da77f2;
-  --c-pension: #ffd43b;
-  --c-other: #adb5bd;
+  --bg: #0f1c1a;
+  --surface: #172a27;
+  --surface-2: #203734;
+  --text: #e4f1ed;
+  --muted: #9db8b1;
+  --border: #2d4a45;
+  --primary: #58c7b3;
+  --primary-ink: #082521;
+  --accent: #77d79d;
+  --warn: #f2ac62;
+  --danger: #ff8d82;
+  --shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  --c-net: #77d79d;
+  --c-tax: #f4a15d;
+  --c-ni: #6ab9d6;
+  --c-health: #b99be0;
+  --c-pension: #efc765;
+  --c-other: #a9bdb8;
 }
 
 /* ===== בסיס ===== */
@@ -261,7 +261,7 @@ select {
 .hero {
   padding: 3rem 0 1.5rem;
   background: radial-gradient(900px 300px at 80% -10%, color-mix(in srgb, var(--primary) 18%, transparent), transparent),
-    radial-gradient(700px 260px at 10% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent);
+    radial-gradient(700px 260px at 10% 0%, color-mix(in srgb, var(--warn) 12%, transparent), transparent);
 }
 .hero-grid {
   display: grid;

@@ -36,7 +36,7 @@ FOOTER = '''<footer class="site-footer">
     </div>
   </footer>'''
 
-HEAD_TAGS = '''<meta name="theme-color" content="#3b5bdb">
+HEAD_TAGS = '''<meta name="theme-color" content="#1f7a6d">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
