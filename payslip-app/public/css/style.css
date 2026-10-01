@@ -1960,3 +1960,8 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { border-color
 }
 .chat-ai-note { margin: 0; padding: 0.4rem 0.9rem 0; background: var(--surface); line-height: 1.4; }
 .chat-panel > div:has(> .chat-form) { display: grid; }
+
+/* שדה תאריך: טקסט + כפתור לוח שנה; הקלט המקורי מוסתר ומשמש לפתיחת הלוח */
+.date-row { position: relative; display: flex; gap: 0.5rem; align-items: stretch; }
+.date-row #r-start-text { flex: 1; }
+.date-native { position: absolute; inset-inline-end: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; padding: 0; border: 0; min-height: 0; }

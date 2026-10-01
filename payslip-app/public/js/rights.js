@@ -21,8 +21,44 @@
     el.textContent = label + ': ' + d.toLocaleDateString(LOCALES[lang] || 'he-IL', { day: 'numeric', month: 'long', year: 'numeric' });
   }
   var prev = saved.get('ps-rights-start');
-  if (prev && /^\d{4}-\d{2}-\d{2}$/.test(prev)) $('r-start').value = prev;
+  if (prev && /^\d{4}-\d{2}-\d{2}$/.test(prev)) { $('r-start').value = prev; $('r-start-text').value = prev.split('-').reverse().join('/'); }
   $('r-rate').value = saved.get('ps-rights-rate') || R.RIGHTS_DATA.recuperationRate;
+
+  /* ---------- הזנת תאריך: שדה טקסט dd/mm/yyyy (עובד בכל מכשיר ודפדפן) + לוח שנה אופציונלי ---------- */
+  var txt = $('r-start-text'), nat = $('r-start');
+  function isoToText(v) { return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v.split('-').reverse().join('/') : ''; }
+  function parseText(t) {
+    var m = /^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/.exec(t);
+    if (!m) return null;
+    var d = +m[1], mo = +m[2], y = +m[3], dt = new Date(Date.UTC(y, mo - 1, d));
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    return dt.getUTCFullYear() === y && dt.getUTCMonth() === mo - 1 && dt.getUTCDate() === d ? y + '-' + pad(mo) + '-' + pad(d) : null;
+  }
+  function formatDigits(raw) {
+    var dg = raw.replace(/\D/g, '').slice(0, 8);
+    return dg.length > 4 ? dg.slice(0, 2) + '/' + dg.slice(2, 4) + '/' + dg.slice(4) : dg.length > 2 ? dg.slice(0, 2) + '/' + dg.slice(2) : dg;
+  }
+  function syncFromText() {
+    var v = txt.value;
+    if (!/^\d{1,2}[\/.-]\d{1,2}[\/.-]\d{4}$/.test(v)) { nat.value = ''; render(); return; }
+    var iso = parseText(v);
+    if (!iso) { nat.value = ''; render(); $('r-err').textContent = 'תאריך לא תקין. הזינו יום/חודש/שנה, למשל 15/03/2019.'; return; }
+    nat.value = iso; // ערך מחוץ לטווח min/max מתקבל כאן, והחישוב מציג הודעת שגיאה מתאימה
+    render();
+  }
+  txt.addEventListener('input', function () {
+    // ספרות בלבד: מוסיפים לוכסנים אוטומטית. מפרידים שהוקלדו ידנית (למשל 1/1/2099) נשמרים כמות שהם.
+    var clean = txt.value.replace(/[^\d\/.-]/g, '').slice(0, 10);
+    var parts = clean.split(/[\/.-]/);
+    var userStyle = parts.length >= 3 || (parts.length === 2 && parts[1].length <= 2);
+    txt.value = userStyle ? clean : formatDigits(clean);
+    syncFromText();
+  });
+  nat.addEventListener('change', function () { txt.value = isoToText(nat.value); render(); });
+  $('r-pick').addEventListener('click', function () {
+    try { if (nat.showPicker) { nat.showPicker(); return; } } catch (e) { /* ממשיכים לחלופה */ }
+    nat.setAttribute('aria-hidden', 'false'); nat.tabIndex = 0; nat.focus();
+  });
 
   function stat(label, value, sub) {
     return h('div', { class: 'r-stat' }, [h('span', { class: 'label', text: label }), h('b', { text: value }), sub ? h('small', { class: 'muted', text: sub }) : null]);
@@ -94,7 +130,7 @@
     );
   });
   $('rights-form').addEventListener('submit', function (e) { e.preventDefault(); });
-  ['r-start', 'r-rate'].forEach(function (id) { $(id).addEventListener('input', render); });
+  $('r-rate').addEventListener('input', render);
   document.querySelectorAll('input[name="week"]').forEach(function (r) { r.addEventListener('change', render); });
   render();
 })();

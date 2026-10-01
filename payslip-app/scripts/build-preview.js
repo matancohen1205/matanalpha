@@ -222,6 +222,7 @@ ${body}
 <script>${(() => {
   let a = pub('js/account.js').split('r-err').join('ra-err');
   a = a.split("/\\/(signup|login)(\\.html)?$/.exec(location.pathname)").join("/^#(signup|login)/.exec(location.hash)");
+  a = a.split("if (!m || document.getElementById('v-guest').hidden) return;").join("if (!m || document.getElementById('v-guest').hidden || document.getElementById('view-account').hidden) return;");
   a = a.split("url: '/login.html'").join("url: '#login'").split("url: '/signup.html'").join("url: '#signup'");
   a = a.split("if (location.pathname !== m.url && !qs.get('reset')) history.replaceState(null, '', m.url);").join("if (location.hash !== m.url) history.replaceState(null, '', m.url);");
   a = a.split("location.href = '/compare.html'").join("location.hash = '#compare'");

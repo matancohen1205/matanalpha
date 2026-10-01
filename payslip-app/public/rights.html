@@ -54,8 +54,12 @@
     <div class="tool-grid">
       <form class="card" id="rights-form" autocomplete="off">
         <div class="field">
-          <label for="r-start">תאריך תחילת עבודה אצל המעסיק</label>
-          <input id="r-start" type="date" required aria-describedby="r-echo">
+          <label for="r-start-text">תאריך תחילת עבודה אצל המעסיק</label>
+          <div class="date-row">
+            <input id="r-start-text" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="dd/mm/yyyy" dir="ltr" aria-describedby="r-echo r-err">
+            <button id="r-pick" class="icon-btn" type="button" aria-label="בחירת תאריך מלוח שנה"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></button>
+            <input id="r-start" class="date-native" type="date" tabindex="-1" aria-hidden="true">
+          </div>
           <small class="muted" id="r-echo" aria-live="polite"></small>
           <small class="err" id="r-err" role="alert"></small>
         </div>
