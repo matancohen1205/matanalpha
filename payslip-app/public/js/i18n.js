@@ -7,12 +7,15 @@
   var lang = 'he';
   try { var s = localStorage.getItem(KEY); if (LANGS[s]) lang = s; } catch (e) { /* ללא אחסון */ }
   var ATTRS = ['placeholder', 'aria-label', 'title', 'alt', 'content'];
-  var dict = {}, pats = [];
+  var cur = { dict: {}, pats: [] };
+  var stores = {};
 
   function norm(s) { return s.replace(/\s+/g, ' ').trim(); }
   function esc(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
-  function tr(text) {
+  function tr(text, st) {
+    st = st || cur;
+    var dict = st.dict, pats = st.pats;
     var t = norm(text);
     if (!t) return null;
     if (Object.prototype.hasOwnProperty.call(dict, t)) return dict[t];
@@ -25,13 +28,13 @@
     }
     // "שם סעיף 1,234.00": מתרגמים את השם ומשאירים את המספר
     var tm = /^(.*\S)\s+(\d[\d,.]*)$/.exec(t);
-    if (tm) { var head = tr(tm[1]); if (head != null) return head + ' ' + tm[2]; }
+    if (tm) { var head = tr(tm[1], st); if (head != null) return head + ' ' + tm[2]; }
     for (var i = 0; i < pats.length; i++) {
       var m = pats[i].re.exec(t);
       if (m) {
         return pats[i].to.replace(/\{(\d)\}/g, function (_, k) {
           var v = m[+k + 1];
-          var inner = tr(v);
+          var inner = tr(v, st);
           return inner == null ? v : inner;
         });
       }
@@ -122,19 +125,55 @@
     }).observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
   }
 
-  window.PSI18n = { lang: function () { return lang; }, t: function (s) { var r = tr(s); return r == null ? s : r; } };
+
+  function compile(j) {
+    return {
+      dict: j.d || {},
+      pats: (j.p || []).map(function (p) {
+        var re = '^' + esc(norm(p[0])).replace(/\\\{\d\\\}|\{\d\}/g, '(.+?)') + '$';
+        return { re: new RegExp(re), to: p[1] };
+      }),
+    };
+  }
+  /** טוען מילון של שפה כלשהי (עם מטמון), גם אם אינה שפת האתר. עברית: אין מה לטעון. */
+  function loadStore(l) {
+    if (!LANGS[l] || l === 'he') return Promise.resolve(null);
+    if (!stores[l]) {
+      stores[l] = fetch('/i18n/' + l + '.json', { credentials: 'omit' }).then(function (r) { return r.json(); }).then(compile).catch(function () { delete stores[l]; return null; });
+    }
+    return stores[l];
+  }
+  /** זיהוי שפת טקסט לפי הכתב: עברית, ערבית, קירילית, לטינית. null אם אין אותיות. */
+  function detect(text) {
+    var c = { he: 0, ar: 0, ru: 0, en: 0 };
+    String(text || '').replace(/[\u0590-\u05ff]/g, function () { c.he++; return ''; })
+      .replace(/[\u0600-\u06ff]/g, function () { c.ar++; return ''; })
+      .replace(/[\u0400-\u04ff]/g, function () { c.ru++; return ''; })
+      .replace(/[A-Za-z]/g, function () { c.en++; return ''; });
+    var best = null, n = 0;
+    Object.keys(c).forEach(function (k) { if (c[k] > n) { n = c[k]; best = k; } });
+    return best;
+  }
+  /** מתרגם טקסט עברי מהאתר לשפה נתונה (ללא תרגום: הטקסט המקורי) */
+  function translateTo(text, l) {
+    return loadStore(l).then(function (st) {
+      if (!st) return text;
+      var r = tr(text, st);
+      return r == null ? text : r;
+    });
+  }
+  window.PSI18n = {
+    lang: function () { return lang; },
+    dir: function (l) { return (LANGS[l] || LANGS.he).dir; },
+    t: function (s) { var r = tr(s); return r == null ? s : r; },
+    detect: detect,
+    translateTo: translateTo,
+  };
 
   function boot() {
     switcher();
     if (lang === 'he') return apply();
-    fetch('/i18n/' + lang + '.json', { credentials: 'omit' }).then(function (r) { return r.json(); }).then(function (j) {
-      dict = j.d || {};
-      pats = (j.p || []).map(function (p) {
-        var re = '^' + esc(norm(p[0])).replace(/\\\{\d\\\}|\{\d\}/g, '(.+?)') + '$';
-        return { re: new RegExp(re), to: p[1] };
-      });
-      apply();
-    }).catch(function () { apply(); });
+    loadStore(lang).then(function (st) { if (st) cur = st; apply(); });
   }
 
   // כיוון מיידי למניעת קפיצת פריסה

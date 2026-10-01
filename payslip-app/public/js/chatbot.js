@@ -11,6 +11,7 @@
   var config = null;
   var opened = false;
   var agentOn = false;
+  var convLang = null; // שפת השיחה: נקבעת לפי ההודעה האחרונה של המשתמש, ולא לפי שפת האתר
   var waiting = false;
 
   var ss = PS.store('session');
@@ -40,8 +41,11 @@
     if (a.fn) {
       return h('button', { class: 'chat-act', type: 'button', text: a.label, onclick: function () { runFn(a.fn); } });
     }
+    if (a.ask) { // הצעת המשך מהסוכן: כבר בשפת המשתמש, נשלחת כמות שהיא
+      return h('button', { class: 'chat-quick', type: 'button', text: a.label, onclick: function () { ask(a.ask, true); } });
+    }
     if (a.say) {
-      return h('button', { class: 'chat-quick', type: 'button', text: a.label, onclick: function () { ask(a.say, true); } });
+      return h('button', { class: 'chat-quick', type: 'button', text: a.label, onclick: function () { ask(a.say, true, { shown: a.label, lang: a.lang }); } });
     }
     var ext = /^https?:/.test(a.href);
     var el = h('a', { class: 'chat-act', href: a.href, text: a.label });
@@ -52,6 +56,9 @@
 
   function render(msg, instant) {
     var bubble = h('div', { class: 'chat-msg ' + msg.from }, [h('p', { text: msg.text })]);
+    if (msg.lang) { // הבועה כבר בשפת השיחה: לא לתרגם שוב לפי שפת האתר
+      bubble.setAttribute('lang', msg.lang); bubble.setAttribute('dir', window.PSI18n ? PSI18n.dir(msg.lang) : 'rtl'); bubble.setAttribute('data-no-i18n', '');
+    } else if (msg.from === 'me') { bubble.setAttribute('dir', 'auto'); bubble.setAttribute('data-no-i18n', ''); }
     if (msg.actions && msg.actions.length) {
       bubble.append(h('div', { class: 'chat-actions' }, msg.actions.map(actionEl)));
     }
@@ -91,6 +98,24 @@
   }
 
   /* ---------- שיחה ---------- */
+  /* ---------- שפת השיחה: התשובה תמיד בשפה שבה המשתמש כתב ---------- */
+  function loc(text, lang) {
+    if (!lang || lang === 'he' || !window.PSI18n) return Promise.resolve(text);
+    return PSI18n.translateTo(text, lang);
+  }
+  function locLines(text, lang) {
+    return Promise.all(String(text).split('\n').map(function (l) { return l.trim() ? loc(l, lang) : Promise.resolve(''); })).then(function (a) { return a.join('\n'); });
+  }
+  function localize(reply, lang) {
+    if (!lang) return Promise.resolve(reply);
+    var jobs = [reply.noText ? Promise.resolve(reply.text) : locLines(reply.text, lang)]
+      .concat((reply.actions || []).map(function (a) { return a.ask || lang === 'he' ? Promise.resolve(a.label) : loc(a.label, lang); }));
+    return Promise.all(jobs).then(function (r) {
+      var out = { from: reply.from, text: r[0], lang: lang, actions: (reply.actions || []).map(function (a, i) { var c = {}; Object.keys(a).forEach(function (k) { c[k] = a[k]; }); c.label = r[i + 1]; if (a.say) c.lang = lang; return c; }) };
+      return out;
+    });
+  }
+
   function agentMessages() {
     return log.filter(function (m) { return (m.from === 'me' || m.from === 'bot') && m.text; })
       .map(function (m) { return { role: m.from === 'me' ? 'user' : 'assistant', content: m.text }; });
@@ -101,21 +126,29 @@
     var dots = h('div', { class: 'chat-msg bot typing', 'aria-hidden': 'true' }, [h('span'), h('span'), h('span')]);
     list.append(dots); list.scrollTop = list.scrollHeight;
     var done = function () { waiting = false; send.disabled = false; dots.remove(); input.focus(); };
-    return fetch('/api/agent/chat', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: agentMessages() }) })
+    return fetch('/api/agent/chat', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: agentMessages(), lang: convLang || (window.PSI18n && PSI18n.lang()) || 'he', page: location.pathname }) })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, status: r.status, body: j }; }); })
       .then(function (r) {
         done();
-        if (r.ok && r.body.ok) { say({ from: 'bot', text: r.body.text, actions: r.body.actions || [] }); return true; }
-        if (r.status === 429) { say({ from: 'bot', text: r.body.message || 'נשלחו הרבה הודעות. נסו שוב בעוד כמה דקות.', actions: [KB.CONTACT] }); return true; }
+        if (r.ok && r.body.ok) {
+          var lg = convLang || (window.PSI18n && PSI18n.lang()) || 'he';
+          var follow = (r.body.suggestions || []).map(function (q) { return { label: q, ask: q }; });
+          localize({ from: 'bot', text: r.body.text, noText: true, actions: r.body.actions || [] }, lg).then(function (m) { m.actions = (m.actions || []).concat(follow); say(m); });
+          return true;
+        }
+        if (r.status === 429) { localize({ from: 'bot', text: r.body.message || 'נשלחו הרבה הודעות. נסו שוב בעוד כמה דקות.', actions: [KB.CONTACT] }, convLang).then(function (m) { say(m); }); return true; }
         return false;
       })
       .catch(function () { done(); return false; });
   }
 
-  function ask(text, fromQuick) {
+  function ask(text, fromQuick, opts) {
     text = String(text || '').trim();
     if (!text || waiting) return;
-    say({ from: 'me', text: text });
+    opts = opts || {};
+    var det = opts.lang || (window.PSI18n && PSI18n.detect(opts.shown || text));
+    if (det) convLang = det;
+    say({ from: 'me', text: opts.shown || text });
     if (agentOn) {
       askAgent(text).then(function (handled) { if (!handled) answerWithKB(text, fromQuick); });
       return;
@@ -124,13 +157,23 @@
   }
 
   function answerWithKB(text, fromQuick) {
-    ensureData().then(function () { return PS.me(); }).then(function (me) {
-      var r = KB.match(text, glossary);
+    var lg0 = convLang || (window.PSI18n && PSI18n.lang()) || 'he';
+    // מונחי מילון בשפת השיחה: משווים מול השמות המתורגמים של המונחים, ולא רק מול העברית
+    var glossFor = function () {
+      if (lg0 === 'he' || !window.PSI18n) return Promise.resolve(glossary);
+      return Promise.all((glossary || []).map(function (g) { return PSI18n.translateTo(g.title, lg0); })).then(function (titles) {
+        return (glossary || []).map(function (g, i) { return { title: titles[i], what: g.what, why: g.why, _src: g }; }).concat(glossary || []);
+      });
+    };
+    ensureData().then(function () { return Promise.all([PS.me(), glossFor()]); }).then(function (res) {
+      var me = res[0];
+      var r = KB.match(text, res[1]);
+      if (r.type === 'glossary' && r.entry._src) r.entry = r.entry._src;
       var reply;
       if (r.type === 'glossary') {
         fails = 0;
         var e = r.entry;
-        reply = { from: 'bot', text: e.title + '\nמה זה? ' + e.what + '\nלמה זה בתלוש? ' + e.why, actions: [{ label: 'כל המילון', href: KB.URL.glossary }, { label: 'העלאת תלוש', href: KB.URL.upload }] };
+        reply = { from: 'bot', compose: { title: e.title, what: e.what, why: e.why }, text: '', actions: [{ label: 'כל המילון', href: KB.URL.glossary }, { label: 'העלאת תלוש', href: KB.URL.upload }] };
       } else if (r.type === 'kb') {
         fails = 0;
         var it = r.intent;
@@ -149,7 +192,15 @@
           actions: more ? [KB.CONTACT] : KB.QUICK.map(function (q) { return { label: q.label, say: q.say }; }),
         };
       }
-      say(reply, fromQuick ? 250 : 450);
+      var lg = convLang || (window.PSI18n && PSI18n.lang()) || 'he';
+      var done = function (m) { say(m, fromQuick ? 250 : 450); };
+      if (reply.compose) { // תשובת מילון: כל חלק מתורגם בנפרד
+        var cp = reply.compose;
+        Promise.all([loc(cp.title, lg), loc('מה זה?', lg), loc(cp.what, lg), loc('למה זה בתלוש?', lg), loc(cp.why, lg)]).then(function (x) {
+          reply.text = x[0] + '\n' + x[1] + ' ' + x[2] + '\n' + x[3] + ' ' + x[4]; reply.noText = true;
+          localize(reply, lg).then(done);
+        });
+      } else localize(reply, lg).then(done);
     });
   }
 

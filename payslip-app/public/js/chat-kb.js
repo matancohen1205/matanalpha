@@ -160,7 +160,7 @@
     upload: ['upload', 'how to upload', 'how does it work', 'how to use', 'scan', 'get started', 'start', 'загрузить', 'как загрузить', 'как работает', 'как пользоваться', 'сканировать', 'начать', 'رفع', 'كيف أرفع', 'كيف يعمل', 'كيف أستخدم', 'فحص', 'ابدأ'],
     formats: ['format', 'file type', 'file size', 'image', 'photo', 'screenshot', 'формат', 'тип файла', 'размер файла', 'фото', 'изображение', 'صيغة', 'نوع الملف', 'حجم الملف', 'صورة'],
     unreadable: ['wrong amount', 'not recognized', 'not recognised', 'cant read', 'cannot read', 'misread', 'correct amount', 'неверная сумма', 'не распознал', 'не читает', 'ошибка распознавания', 'исправить сумму', 'مبلغ خاطئ', 'لم يتعرف', 'لا يقرأ', 'تصحيح المبلغ'],
-    privacy: ['privacy', 'secure', 'safe', 'security', 'stored', 'delete my data', 'personal data', 'encryption', 'конфиденциальность', 'безопасно', 'безопасность', 'хранится', 'удалить данные', 'личные данные', 'шифрование', 'خصوصية', 'آمن', 'أمان', 'يحفظ', 'حذف بياناتي', 'تشفير'],
+    privacy: ['privacy', 'secure', 'safe', 'security', 'stored', 'delete my data', 'personal data', 'encryption', 'my data', 'is my data', 'конфиденциальность', 'безопасно', 'безопасность', 'хранится', 'удалить данные', 'личные данные', 'шифрование', 'خصوصية', 'آمن', 'أمان', 'يحفظ', 'حذف بياناتي', 'تشفير', 'آمنة', 'بياناتي', 'معلوماتي', 'أمان'],
     pro: ['pro', 'subscription', 'plan', 'premium', 'upgrade', "what's included", 'подписка', 'тариф', 'что входит', 'премиум', 'اشتراك', 'ما الذي يشمل', 'مدفوع'],
     billing: ['cancel', 'cancel subscription', 'billing', 'charged', 'payment', 'refund', 'invoice', 'receipt', 'credit card', 'отменить', 'отмена подписки', 'оплата', 'списали', 'возврат', 'счёт', 'чек', 'карта', 'إلغاء', 'إلغاء الاشتراك', 'دفع', 'خصم', 'استرداد', 'فاتورة', 'بطاقة'],
     whatsapp: ['whatsapp', 'bot', 'alerts', 'notifications', 'connect whatsapp', 'ватсап', 'вотсап', 'бот', 'оповещения', 'уведомления', 'واتساب', 'بوت', 'تنبيهات'],
@@ -222,7 +222,7 @@
     return score;
   }
 
-  var ASKS_TERM = /(מה זה|מהו|מהי|מה הוא|מה היא|פירוש|הסבר|מה אומר|מה אומרת|מה המשמעות|למה יש|למה אני משלם|למה מנכים)/;
+  var ASKS_TERM = /(what is|what s|what does|what are|explain|meaning of|что такое|что значит|объясни|ما هو|ما هي|ما معنى|اشرح|מה זה|מהו|מהי|מה הוא|מה היא|פירוש|הסבר|מה אומר|מה אומרת|מה המשמעות|למה יש|למה אני משלם|למה מנכים)/;
 
   function glossaryMatch(nq, glossary) {
     var best = null;
