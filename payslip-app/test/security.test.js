@@ -219,3 +219,22 @@ test('מנוי שנתי ושחזור גישה באימייל', async () => {
   app.setBilling({ stripe, priceId: 'price_m', secret: 'test-secret', mailer: null });
   assert.strictEqual((await req('POST', '/api/billing/recover', { body: { email: 'owner@example.com' } })).status, 503);
 });
+
+test('זכויות: חישוב ותזכורות ביומן תקינים', () => {
+  const R = require('../public/js/rights-core');
+  const r = R.compute({ start: '2019-03-10', daysPerWeek: 5, today: '2025-10-01' });
+  assert.strictEqual(r.yearNo, 7);
+  assert.strictEqual(r.recuperation.days, 7);
+  assert.strictEqual(r.sick.accrued, 90);
+  assert.ok(R.compute({ start: '2030-01-01' }).error);
+  assert.ok(R.compute({ start: 'not-a-date' }).error);
+  assert.strictEqual(R.compute({ start: '2025-09-20', today: '2025-10-01' }).recuperation.firstYearProRata, true);
+  const ics = R.toIcs(R.reminderCatalog(r, '2025-10-01'), 'x');
+  assert.match(ics, /^BEGIN:VCALENDAR\r\n/);
+  assert.match(ics, /END:VCALENDAR\r\n$/);
+  assert.strictEqual((ics.match(/BEGIN:VEVENT/g) || []).length, 5);
+  assert.ok(ics.split('\r\n').every((l) => Buffer.byteLength(l) <= 75), 'שורות ארוכות מ-75 בתים');
+  // הזרקת שורות: פסיק/נקודה-פסיק/שורה חדשה בשדות חייבים להיות מוברחים
+  const evil = R.toIcs([{ id: 'x', title: 'a\r\nEND:VCALENDAR', desc: 'b;c,d', start: new Date(Date.UTC(2026, 0, 1)), rrule: 'FREQ=YEARLY' }], 'x');
+  assert.strictEqual(evil.split('\r\n').filter((l) => l === 'END:VCALENDAR').length, 1);
+});

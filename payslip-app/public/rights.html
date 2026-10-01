@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>בדיקת נקודות זיכוי | תלוש בעברית</title>
-  <meta name="description" content="בדקו כמה נקודות זיכוי במס הכנסה מגיעות לכם והשוו למה שכתוב בתלוש.">
+  <title>זכויות ותזכורות | תלוש בעברית</title>
+  <meta name="description" content="חשבו חופשה, הבראה ומחלה לפי ותק, והוסיפו תזכורות ליומן כדי לא לפספס זכויות.">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#1f7a6d">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -42,52 +42,48 @@
   </header>
 
   <main id="main" class="container tool">
-    <h1>בדיקת נקודות זיכוי</h1>
-    <p class="lead muted">נקודות זיכוי מקטינות את המס שלכם. ענו על כמה שאלות וראו אם מה שרשום בתלוש תואם את מה שמגיע לכם.</p>
+    <h1>זכויות ותזכורות</h1>
+    <p class="lead muted">הזינו מתי התחלתם לעבוד, וקבלו הערכה של ימי חופשה, הבראה ומחלה לפי החוק. אחר כך אפשר להוסיף תזכורות ליומן כדי לא לפספס אף זכות.</p>
 
     <div class="tool-grid">
-      <form class="card" id="credit-form" autocomplete="off">
-        <fieldset>
-          <legend>מין</legend>
-          <label class="inline"><input type="radio" name="gender" value="m" checked> גבר</label>
-          <label class="inline"><input type="radio" name="gender" value="f"> אישה</label>
-        </fieldset>
-
-        <fieldset>
-          <legend>ילדים (שנת לידה)</legend>
-          <div id="kids" class="kids"></div>
-          <button type="button" class="btn btn-ghost btn-sm" id="add-kid">+ הוספת ילד/ה</button>
-          <label class="check"><input id="single" type="checkbox"> אני הורה יחיד/ה</label>
-        </fieldset>
-
-        <fieldset>
-          <legend>לימודים ושירות</legend>
-          <div class="field">
-            <label for="degree">תואר אקדמי</label>
-            <select id="degree">
-              <option value="none">אין / לא רלוונטי</option>
-              <option value="ba">תואר ראשון</option>
-              <option value="ma">תואר שני</option>
-            </select>
-          </div>
-          <label class="check"><input id="degree-recent" type="checkbox"> סיימתי לאחרונה (בתוך התקופה שבה הזכאות בתוקף)</label>
-          <div class="field">
-            <label for="discharge">חודשים שנותרו מ-36 לאחר שחרור משירות</label>
-            <input id="discharge" type="number" min="0" max="36" step="1" value="0">
-          </div>
-        </fieldset>
-
+      <form class="card" id="rights-form" autocomplete="off">
         <div class="field">
-          <label for="payslip-points">כמה נקודות רשומות בתלוש שלכם?</label>
-          <input id="payslip-points" type="number" min="0" max="20" step="0.25" placeholder="למשל 2.25">
-          <small class="muted" id="from-slip"></small>
+          <label for="r-start">תאריך תחילת עבודה אצל המעסיק</label>
+          <input id="r-start" type="date" required>
+          <small class="err" id="r-err" role="alert"></small>
         </div>
+        <fieldset>
+          <legend>ימי עבודה בשבוע</legend>
+          <label class="inline"><input type="radio" name="week" value="5" checked> 5 ימים</label>
+          <label class="inline"><input type="radio" name="week" value="6"> 6 ימים</label>
+        </fieldset>
+        <div class="field">
+          <label for="r-rate">תעריף ליום הבראה (₪)</label>
+          <input id="r-rate" type="number" min="0" step="1" value="418">
+          <small class="muted">התעריף משתנה מדי שנה. בדקו את הסכום העדכני ב"כל זכות".</small>
+        </div>
+        <p class="disclaimer">הערכה כללית לפי החוק למגזר הפרטי. הסכם קיבוצי, חוזה אישי או צו הרחבה עשויים להקנות יותר. אינו ייעוץ משפטי.</p>
       </form>
 
-      <section class="card" id="credit-out" aria-live="polite" aria-label="תוצאת הבדיקה"></section>
+      <section class="card" id="r-out" aria-live="polite" aria-label="תוצאות">
+        <p class="empty">הזינו תאריך התחלה כדי לראות את הזכויות שלכם.</p>
+      </section>
     </div>
-    <p class="disclaimer">הכללים מקורבים וייתכנו זכאויות נוספות (עולים חדשים, נכות, יישוב מוטב, הורה לילד עם מוגבלות ועוד). לבדיקה סופית פנו לרשות המסים, למחלקת השכר או לרואה חשבון. כדי לעדכן נקודות ממלאים טופס 101 אצל המעסיק.</p>
+
+    <section class="section-sm" id="r-remind" hidden aria-labelledby="rem-h">
+      <h2 id="rem-h">תזכורות ליומן</h2>
+      <p class="muted">בחרו אילו תזכורות להוסיף. הקובץ נוצר בדפדפן שלכם ואינו נשלח לשום מקום. פותחים אותו ביומן של גוגל, אפל או Outlook.</p>
+      <div class="card">
+        <ul class="remind-list" id="r-list"></ul>
+        <div class="form-actions">
+          <button class="btn" type="button" id="r-ics">הורדת קובץ יומן (.ics)</button>
+          <button class="btn btn-ghost" type="button" id="r-copy">העתקת הטקסט</button>
+        </div>
+        <p class="muted small" id="r-note" role="status"></p>
+      </div>
+    </section>
   </main>
+
 
   <footer class="site-footer">
     <div class="container footer-inner">
@@ -107,8 +103,8 @@
   <script src="/js/chat-kb.js"></script>
   <script src="/js/chatbot.js"></script>
   <script src="/js/promo.js"></script>
-  <script src="/js/tax-core.js"></script>
-  <script src="/js/credits.js"></script>
+  <script src="/js/rights-core.js"></script>
+  <script src="/js/rights.js"></script>
   <script src="/js/year.js"></script>
 </body>
 </html>

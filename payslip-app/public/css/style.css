@@ -1830,3 +1830,13 @@ textarea[aria-invalid='true'] {
 .recover { margin-top: 0.8rem; }
 .recover-row { display: flex; gap: 0.5rem; flex-wrap: wrap; padding: 0 1rem 0.5rem; }
 .recover-row input { flex: 1; min-width: 180px; }
+
+/* ===== זכויות ===== */
+.r-grid { display: grid; gap: 0.7rem; }
+.r-stat { display: grid; gap: 0.1rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
+.r-stat b { font-size: 1.35rem; }
+.remind-list { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: 0.6rem; }
+.remind-list label { display: flex; gap: 0.7rem; align-items: flex-start; cursor: pointer; }
+.remind-list label span { display: grid; gap: 0.15rem; }
+.remind-list input { margin-top: 0.25rem; flex: none; }
+input[type='date'] { min-height: 46px; padding: 0 0.8rem; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); width: 100%; direction: ltr; text-align: start; }
