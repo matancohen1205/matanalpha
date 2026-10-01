@@ -27,7 +27,7 @@ const footer = between(index, '<footer class="site-footer">', '</footer>');
 const homeMain = between(index, '<main id="main">', '</main>');
 
 const LEGAL = ['privacy', 'terms', 'accessibility'];
-const TOOLS = ['calculator', 'credits', 'compare', 'pricing', 'whatsapp', 'about', 'contact'];
+const TOOLS = ['calculator', 'credits', 'compare', 'pricing', 'whatsapp', 'about', 'contact', 'rights'];
 const VIEWS_ALL = LEGAL.concat(TOOLS);
 const legal = LEGAL.map((n) => {
   const art = between(pub(n + '.html'), '<article class="prose">', '</article>');
@@ -49,8 +49,11 @@ appJs = patch(
 );
 let commonJs = patch(pub('js/common.js'), '/accessibility.html', '#accessibility');
 
+const I18N = {};
+for (const l of ['en', 'ru', 'ar']) I18N[l] = JSON.parse(fs.readFileSync(path.join(root, 'public', 'i18n', `${l}.json`), 'utf8'));
 const shim = `
 (function () {
+  var I18N = ${JSON.stringify(I18N)};
   var G = (function () { var module = { exports: {} }; ${src('glossary.js')}\n return module.exports; })();
   var A = (function () { var module = { exports: {} }; var require = function () { return G; }; ${src('analyzer.js')}\n return module.exports; })();
   var C = (function () { var module = { exports: {} }; ${src('compare.js')}\n return module.exports; })();
@@ -71,9 +74,13 @@ const shim = `
     if (url === '/api/whatsapp/status') { waPolls += waLinking ? 1 : 0; return json(200, { configured: true, pro: proOn, linked: waLinked || waPolls >= 2, phone: '•••••••567' }); }
     if (url === '/api/whatsapp/link') { if (!proOn) return json(402, { message: 'החיבור זמין למנויי Pro.' }); waLinking = true; return json(200, { url: '#whatsapp', expiresInMinutes: 30 }); }
     if (url === '/api/whatsapp/unlink') { waLinked = false; waLinking = false; waPolls = -99; return json(200, { linked: false }); }
+    if (typeof url === 'string' && url.indexOf('/i18n/') === 0) {
+      var lg = url.slice(6, 8);
+      return json(200, I18N[lg] || { d: {}, p: [] });
+    }
     if (url === '/api/site-config') return json(200, { supportEmail: '', supportWhatsapp: '', supportHours: '', topics: {} });
     if (url === '/api/contact') return json(200, { ok: true, ticket: 'T-DEMO' });
-    if (url === '/api/billing/me') return json(200, { pro: proOn, configured: false, devUnlock: true, priceLabel: '19.90 ₪ לחודש' });
+    if (url === '/api/billing/me') return json(200, { pro: proOn, configured: false, devUnlock: true, priceLabel: '19.90 ₪ לחודש', priceLabelYearly: '199 ₪ לשנה', plans: [{ id: 'monthly', label: '19.90 ₪ לחודש' }, { id: 'yearly', label: '199 ₪ לשנה' }] });
     if (url === '/api/billing/dev-activate') { proOn = true; return json(200, { pro: true }); }
     if (url === '/api/billing/logout') { proOn = false; return json(200, { pro: false }); }
     if (url === '/api/billing/checkout' || url === '/api/billing/portal' || url === '/api/billing/activate') return json(503, { error: 'PREVIEW', message: 'התשלום אינו פעיל בתצוגה המקדימה.' });
@@ -130,6 +137,7 @@ const css =
   `
 .preview-note{margin-top:1rem;padding:.7rem 1rem;border-radius:12px;border:1px dashed var(--primary);background:color-mix(in srgb,var(--primary) 8%,transparent);font-size:.93rem}
 .back-link{font-weight:700}
+#account-link{display:none}
 .legal-view,.tool-view{padding-block:1.5rem}
 .container-wrap{display:block}
 .tool-view .tool{padding-block:.5rem}
@@ -147,6 +155,7 @@ ${css}
 ${body}
 </div>
 <script>${pub('js/theme-init.js')}</script>
+<script>${pub('js/i18n.js').split('de.lang = lang; de.dir = LANGS[lang].dir;').join("de.lang = lang; de.dir = LANGS[lang].dir; var ar = document.getElementById('app-root'); if (ar) { ar.lang = lang; ar.dir = LANGS[lang].dir; }")}</script>
 <script>${shim}</script>
 <script>${pub('js/tax-core.js')}</script>
 <script>${pub('js/util.js')}</script>
@@ -164,6 +173,8 @@ ${body}
 <script>${pub('js/explainer.js')}</script>
 <script>${pub('js/home.js')}</script>
 <script>${pub('js/calc.js')}</script>
+<script>${pub('js/rights-core.js')}</script>
+<script>${pub('js/rights.js')}</script>
 <script>${pub('js/credits.js')}</script>
 <script>${pub('js/compare.js').split("href: '/pricing.html'").join("href: '#pricing'")}</script>
 <script>${pub('js/wa.js').split("window.open(r.body.url, '_blank', 'noopener');").join('').split("href: '/pricing.html'").join("href: '#pricing'")}</script>
