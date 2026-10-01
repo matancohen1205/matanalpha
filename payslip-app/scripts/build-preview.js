@@ -114,13 +114,17 @@ VIEWS_ALL.forEach((n) => { body = body.split(`href="/${n}.html"`).join(`href="#$
 body = patch(body, 'href="/#', 'href="#');
 const mark = 'data:image/svg+xml;base64,' + fs.readFileSync(path.join(root, 'public', 'logo-mark.svg')).toString('base64');
 body = body.split('src="/logo-mark.svg"').join(`src="${mark}"`);
+for (const n of ['explain', 'calc', 'credits', 'compare']) {
+  const uri = 'data:image/jpeg;base64,' + fs.readFileSync(path.join(root, 'public', 'img', `shot-${n}.jpg`)).toString('base64');
+  body = body.split(`src="/img/shot-${n}.jpg"`).join(`src="${uri}"`);
+}
 body = patch(body, 'href="/"', 'href="#"');
 body = patch(body, ' target="_blank" rel="noopener"', '');
 body = patch(body, '<main id="main">', '<div id="main">').replace('</main>\n</div>', '</div>\n</div>');
 body = body.replace(/<a class="nav-link" href="#">[^<]*<\/a>/, (m) => m);
 
 const css =
-  pub('css/style.css') +
+  pub('css/style.css') + pub('css/home.css') +
   `
 .preview-note{margin-top:1rem;padding:.7rem 1rem;border-radius:12px;border:1px dashed var(--primary);background:color-mix(in srgb,var(--primary) 8%,transparent);font-size:.93rem}
 .back-link{font-weight:700}
@@ -147,6 +151,8 @@ ${body}
 <script>${commonJs}</script>
 <script>${pub('js/promo.js').split("href: '/pricing.html'").join("href: '#pricing'")}</script>
 <script>${appJs}</script>
+<script>${pub('js/explainer.js')}</script>
+<script>${pub('js/home.js')}</script>
 <script>${pub('js/calc.js')}</script>
 <script>${pub('js/credits.js')}</script>
 <script>${pub('js/compare.js').split("href: '/pricing.html'").join("href: '#pricing'")}</script>

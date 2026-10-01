@@ -12,6 +12,7 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/home.css">
   <script src="/js/theme-init.js"></script>
 </head>
 <body>
@@ -39,11 +40,11 @@
   </header>
 
   <main id="main">
-    <section class="hero">
+    <section class="hero"><div class="blob b1" aria-hidden="true"></div><div class="blob b2" aria-hidden="true"></div>
       <div class="container hero-grid">
         <div>
           <span class="eyebrow">🔒 הקובץ נמחק מיד אחרי הקריאה</span>
-          <h1>מבינים סוף סוף מה כתוב בתלוש השכר</h1>
+          <h1>מבינים סוף סוף <span class="hl">מה כתוב</span> בתלוש השכר</h1>
           <p class="lead">מעלים תלוש, אנחנו סורקים אותו בצורה מאובטחת ומסבירים בעברית פשוטה כל סעיף: מה הוא אומר, ולמה הוא מופיע דווקא אצלכם החודש.</p>
           <ul class="trust-list">
             <li><span class="tick" aria-hidden="true">✓</span><span>התלוש מעובד בזיכרון בלבד ולא נשמר בשרת, ללא חשבון וללא הרשמה.</span></li>
@@ -95,12 +96,194 @@
       </div>
     </section>
 
+
+    <section class="stats-strip" aria-label="במספרים">
+      <div class="container stats-row">
+        <div class="stat-pill"><strong class="count" data-to="35">35</strong><span>מונחי שכר מוסברים</span></div>
+        <div class="stat-pill"><strong class="count" data-to="4">4</strong><span>כלים לשכר שלכם</span></div>
+        <div class="stat-pill"><strong class="count" data-to="0">0</strong><span>תלושים נשמרים אצלנו</span></div>
+        <div class="stat-pill"><strong class="count" data-to="12">12</strong><span>תלושים להשוואה (Pro)</span></div>
+      </div>
+    </section>
+
+    <section id="video" class="section video-section" aria-labelledby="video-h">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">🎬 כדקה אחת</span>
+            <h2 id="video-h">איך זה עובד: מהתלוש להבנה</h2>
+            <p class="muted">סיור קצר באתר, הליך ההעלאה והפיצ'רים. אפשר להפעיל עם קריינות בעברית או לקרוא את הכתוביות.</p>
+          </div>
+        </div>
+
+        <div class="player" id="player" aria-label="סרטון הסבר על האתר">
+          <div class="stage" id="stage" data-scene="0" role="img" aria-label="הדגמה מונפשת של האתר. הטקסט המלא מופיע בתמליל מתחת לנגן.">
+
+            <!-- סצנה 1: הבעיה -->
+            <div class="scene on" data-dur="8" data-say="כולנו מקבלים תלוש שכר, אבל מי באמת מבין מה כתוב בו? מונחים מבלבלים, ניכויים, ונקודות זיכוי.">
+              <div class="s-text"><h3>תלוש שכר. מבולבל?</h3><p>ניכויים, מונחים, נקודות זיכוי…</p></div>
+              <div class="s-art">
+                <div class="mock-slip float">
+                  <div class="mock-head"><b>תלוש שכר 08/2025</b></div>
+                  <div class="mock-row"><span>שכר יסוד</span><i>12,000.00</i></div>
+                  <div class="mock-row"><span>שעות נוספות 125%</span><i>640.00</i></div>
+                  <div class="mock-row"><span>ברוטו</span><i>15,126.00</i></div>
+                  <div class="mock-row"><span>מס הכנסה</span><i>1,480.00</i></div>
+                  <div class="mock-row"><span>ב. לאומי</span><i>540.00</i></div>
+                  <div class="mock-row"><span>נקודות זיכוי</span><i>2.25</i></div>
+                  <div class="mock-row"><span>נטו</span><i>11,230.44</i></div>
+                </div>
+                <span class="q q1">?</span><span class="q q2">?</span><span class="q q3">?</span>
+                <span class="term t1">ניכוי אחר</span><span class="term t2">מס שולי</span><span class="term t3">הפרשת מעסיק</span>
+              </div>
+            </div>
+
+            <!-- סצנה 2: העלאה מאובטחת -->
+            <div class="scene" data-dur="8" data-say="פשוט מעלים את התלוש, כקובץ או כתמונה. הוא עובר בהצפנה, מעובד בזיכרון בלבד, ונמחק מיד אחרי הקריאה.">
+              <div class="s-text"><h3>מעלים. בצורה מאובטחת.</h3><p>מעובד בזיכרון בלבד ונמחק מיד</p></div>
+              <div class="s-art">
+                <div class="drop-box"><svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg><span>גררו לכאן את התלוש</span></div>
+                <div class="mock-slip small drop-in"><div class="mock-row"><span>שכר יסוד</span><i>12,000</i></div><div class="mock-row"><span>נטו</span><i>11,230</i></div></div>
+                <div class="lock-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>מוצפן</span></div>
+                <div class="gone-chip">נמחק מיד ✓</div>
+              </div>
+            </div>
+
+            <!-- סצנה 3: סריקה -->
+            <div class="scene" data-dur="8" data-say="הסריקה קוראת את התלוש בעברית, ומזהה כל סעיף וכל סכום, בין אם זה קובץ PDF או תמונה מהנייד.">
+              <div class="s-text"><h3>סורקים וקוראים בעברית</h3><p>כל סעיף. כל סכום.</p></div>
+              <div class="s-art">
+                <div class="mock-slip scanning">
+                  <div class="mock-row r1"><span>שכר יסוד</span><i>12,000.00</i></div>
+                  <div class="mock-row r2"><span>ברוטו</span><i>15,126.00</i></div>
+                  <div class="mock-row r3"><span>מס הכנסה</span><i>1,480.00</i></div>
+                  <div class="mock-row r4"><span>ביטוח לאומי</span><i>540.00</i></div>
+                  <div class="mock-row r5"><span>פנסיה</span><i>907.56</i></div>
+                  <div class="mock-row r6"><span>נטו</span><i>11,230.44</i></div>
+                  <div class="beam"></div>
+                </div>
+                <span class="tag g1">ברוטו ✓</span><span class="tag g2">מס הכנסה ✓</span><span class="tag g3">פנסיה ✓</span><span class="tag g4">נטו ✓</span>
+              </div>
+            </div>
+
+            <!-- סצנה 4: הסבר -->
+            <div class="scene" data-dur="9" data-say="ולכל סעיף מקבלים הסבר פשוט: מה זה, ולמה זה מופיע אצלכם החודש. עם תרשים שמראה לאן הלך הברוטו.">
+              <div class="s-text"><h3>ומסבירים כל סעיף</h3><p>מה זה? ולמה זה אצלכם?</p></div>
+              <div class="s-art">
+                <div class="explain-card">
+                  <span class="pill">ניכוי</span><b>ביטוח לאומי</b>
+                  <small>מה זה?</small><p>הפרשה למוסד לביטוח לאומי, שמממן קצבאות ודמי לידה.</p>
+                  <small>למה זה אצלכם?</small><p>מחושב לפי גובה השכר, בשיעור מופחת עד תקרה.</p>
+                </div>
+                <svg viewBox="0 0 120 120" class="mini-donut" aria-hidden="true">
+                  <circle class="seg s-a" cx="60" cy="60" r="44" pathLength="100"/>
+                  <circle class="seg s-b" cx="60" cy="60" r="44" pathLength="100"/>
+                  <circle class="seg s-c" cx="60" cy="60" r="44" pathLength="100"/>
+                  <text x="60" y="58" class="dt1">ברוטו</text><text x="60" y="74" class="dt2">15,126</text>
+                </svg>
+              </div>
+            </div>
+
+            <!-- סצנה 5: כלים -->
+            <div class="scene" data-dur="9" data-say="יש גם מחשבון נטו וברוטו, ובדיקה אם מגיעות לכם נקודות זיכוי שלא רשומות בתלוש. כך מגלים כסף שמגיע לכם.">
+              <div class="s-text"><h3>כלים שחוסכים כסף</h3><p>מחשבון נטו-ברוטו · נקודות זיכוי</p></div>
+              <div class="s-art">
+                <div class="calc-card">
+                  <small>ברוטו חודשי</small><b class="calc-num"><span class="n1">15,000</span> ₪</b>
+                  <div class="slider"><i></i></div>
+                  <small>נטו משוער</small><b class="calc-net">11,612 ₪</b>
+                </div>
+                <div class="credit-card"><small>נקודות זיכוי</small><div class="pts"><span class="p-old">2.25</span><span class="p-new">5.25</span></div><em>חסרות 3 נקודות · כ-726 ₪ בחודש</em></div>
+              </div>
+            </div>
+
+            <!-- סצנה 6: Pro -->
+            <div class="scene" data-dur="9" data-say="ובמנוי Pro משווים תלושים בין חודשים, ומקבלים התראה בוואטסאפ ברגע שמשהו חריג, כמו סעיף שנעלם או קפיצה במס.">
+              <div class="s-text"><h3>Pro: מעקב והתראות</h3><p>השוואה בין חודשים + וואטסאפ</p></div>
+              <div class="s-art">
+                <svg viewBox="0 0 220 134" class="line-chart" aria-hidden="true">
+                  <path class="grid" d="M10 20H210M10 55H210M10 90H210M10 120H210"/>
+                  <path class="ln l-gross" d="M15 70 L75 55 L135 38 L200 62" pathLength="100"/>
+                  <path class="ln l-net" d="M15 95 L75 85 L135 72 L200 90" pathLength="100"/>
+                  <circle class="dot-alert" cx="135" cy="38" r="6"/>
+                  <text x="15" y="127">06</text><text x="75" y="127">07</text><text x="135" y="127">08</text><text x="200" y="127">09</text>
+                </svg>
+                <div class="wa-chat">
+                  <div class="wa-b out">📎 תלוש_ספטמבר.jpg</div>
+                  <div class="wa-b in"><b>⚠️ דברים שכדאי לבדוק</b><br>• "החזר נסיעות" לא מופיע<br>• שיעור המס קפץ</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- סצנה 7: פרטיות + קריאה לפעולה -->
+            <div class="scene" data-dur="8" data-say="הכול בפרטיות מלאה, בלי הרשמה ובלי שמירת התלוש. מנסים עכשיו, בחינם.">
+              <div class="s-text"><h3>פרטיות מלאה. בלי הרשמה.</h3><p>התלוש לא נשמר. מנסים בחינם.</p><a class="btn cta" href="#upload">נסו עכשיו</a></div>
+              <div class="s-art">
+                <svg viewBox="0 0 120 140" class="shield" aria-hidden="true"><path class="sh" d="M60 10 L105 28 V68 C105 98 85 120 60 130 C35 120 15 98 15 68 V28 Z"/><path class="ck" d="M38 70 L55 87 L84 50"/></svg>
+              </div>
+            </div>
+
+            <div class="captions" id="captions" aria-hidden="true"></div>
+
+            <button class="big-play" id="big-play" type="button" aria-label="הפעלת סרטון ההסבר">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+              <span>צפו בסרטון</span>
+            </button>
+          </div>
+
+          <div class="controls" role="group" aria-label="בקרי נגן">
+            <button class="ctl" id="btn-play" type="button" aria-label="הפעלה">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z"/><path class="i-pause" d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+            </button>
+            <button class="ctl" id="btn-restart" type="button" aria-label="התחלה מחדש">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v5h5"/></svg>
+            </button>
+            <div class="timeline" id="timeline" role="group" aria-label="פרקי הסרטון"></div>
+            <button class="ctl" id="btn-voice" type="button" aria-pressed="true" aria-label="קריינות">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>
+            </button>
+            <button class="ctl" id="btn-cc" type="button" aria-pressed="true" aria-label="כתוביות">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 11h3M8 14h8M13 11h3"/></svg>
+            </button>
+            <button class="ctl" id="btn-full" type="button" aria-label="מסך מלא">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+            </button>
+          </div>
+          <p class="voice-note muted small" id="voice-note" hidden></p>
+          <details class="transcript"><summary>תמליל מלא של הסרטון</summary><ol id="transcript"></ol></details>
+        </div>
+      </div>
+    </section>
+
     <section id="results" class="section" hidden aria-labelledby="results-title">
       <div class="container">
         <div class="section-head">
           <h2 id="results-title" tabindex="-1">התלוש שלכם, מוסבר</h2>
         </div>
         <div id="results-body"></div>
+      </div>
+    </section>
+
+
+    <section id="product" class="section gallery-section" aria-labelledby="product-h">
+      <div class="container">
+        <h2 id="product-h">מבט מבפנים</h2>
+        <p class="muted">צילומי מסך אמיתיים מהאתר, עם נתוני דוגמה.</p>
+        <div class="gallery">
+          <div class="g-tabs" role="tablist" aria-label="בחירת מסך">
+            <button class="g-tab" role="tab" aria-selected="true" aria-controls="g-explain" id="gt-explain" type="button">הסבר תלוש</button>
+            <button class="g-tab" role="tab" aria-selected="false" aria-controls="g-calc" id="gt-calc" type="button">מחשבון</button>
+            <button class="g-tab" role="tab" aria-selected="false" aria-controls="g-credits" id="gt-credits" type="button">נקודות זיכוי</button>
+            <button class="g-tab" role="tab" aria-selected="false" aria-controls="g-compare" id="gt-compare" type="button">השוואה <span class="pro-tag">Pro</span></button>
+          </div>
+          <div class="g-frame">
+            <div class="g-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+            <figure class="g-panel" id="g-explain" role="tabpanel" aria-labelledby="gt-explain"><img src="/img/shot-explain.jpg" width="1120" height="700" loading="lazy" alt="מסך תוצאות: סיכום ברוטו וניכויים, תרשים טבעת והסבר לכל סעיף"><figcaption>סיכום, תרשים והסבר לכל סעיף בתלוש. <a href="/">נסו עם תלוש לדוגמה</a></figcaption></figure>
+            <figure class="g-panel" id="g-calc" role="tabpanel" aria-labelledby="gt-calc" hidden><img src="/img/shot-calc.jpg" width="1120" height="640" loading="lazy" alt="מחשבון נטו-ברוטו עם מחוון, פירוט ניכויים וחלוקת הברוטו"><figcaption>מחשבון נטו-ברוטו עם פירוט המס. <a href="/calculator.html">למחשבון</a></figcaption></figure>
+            <figure class="g-panel" id="g-credits" role="tabpanel" aria-labelledby="gt-credits" hidden><img src="/img/shot-credits.jpg" width="1120" height="600" loading="lazy" alt="בדיקת נקודות זיכוי עם השוואה לנקודות שרשומות בתלוש"><figcaption>בדיקה אם חסרות לכם נקודות זיכוי. <a href="/credits.html">לבדיקה</a></figcaption></figure>
+            <figure class="g-panel" id="g-compare" role="tabpanel" aria-labelledby="gt-compare" hidden><img src="/img/shot-compare.jpg" width="1120" height="470" loading="lazy" alt="גרף השוואה בין תלושי חודשים שונים"><figcaption>מעקב אחרי ברוטו, נטו ומס בין חודשים. <a href="/compare.html">להשוואה</a></figcaption></figure>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -122,6 +305,27 @@
           <div class="card step-card"><div class="num">1</div><h3>מעלים תלוש</h3><p class="muted">PDF או תמונה. הקובץ נשלח בהצפנה ומעובד בזיכרון בלבד.</p></div>
           <div class="card step-card"><div class="num">2</div><h3>סריקה חכמה</h3><p class="muted">קריאת הטקסט בעברית (OCR) וזיהוי כל סעיף וסכום בתלוש.</p></div>
           <div class="card step-card"><div class="num">3</div><h3>הסבר לכל סעיף</h3><p class="muted">מה זה, למה זה אצלכם, תרשים אינטראקטיבי והערות על דברים שכדאי לבדוק.</p></div>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="for-whom" class="section" aria-labelledby="who-h">
+      <div class="container">
+        <h2 id="who-h">למי זה מיועד</h2>
+        <div class="grid-3 personas">
+          <article class="card persona">
+            <svg viewBox="0 0 120 90" class="art" aria-hidden="true"><circle cx="60" cy="34" r="16" class="a1"/><path d="M26 82c0-18 15-30 34-30s34 12 34 30" class="a2"/><path d="M82 18l5 5 9-10" class="a3"/></svg>
+            <h3>מי שרוצה להבין</h3><p class="muted">קיבלתם תלוש ולא ברור מה כל שורה? כל מונח מוסבר בשפה פשוטה, עם הקשר לתלוש שלכם.</p>
+          </article>
+          <article class="card persona">
+            <svg viewBox="0 0 120 90" class="art" aria-hidden="true"><rect x="24" y="14" width="54" height="66" rx="6" class="a1"/><path d="M34 34h34M34 46h34M34 58h20" class="a2"/><circle cx="88" cy="58" r="16" class="a4"/><path d="M100 70l12 12" class="a2"/></svg>
+            <h3>מי שבודק שהכול תקין</h3><p class="muted">רוצים לוודא שהמעסיק מנכה ומפריש נכון? התראות על סעיפים שנעלמו, קפיצות במס ופנסיה נמוכה.</p>
+          </article>
+          <article class="card persona">
+            <svg viewBox="0 0 120 90" class="art" aria-hidden="true"><circle cx="40" cy="30" r="12" class="a1"/><circle cx="78" cy="38" r="8" class="a4"/><path d="M18 80c0-14 10-24 22-24s22 10 22 24M62 80c0-10 7-18 16-18s16 8 16 18" class="a2"/></svg>
+            <h3>הורים ומשפחות</h3><p class="muted">ילדים, תואר, שחרור מצה"ל: בדקו אם כל נקודות הזיכוי שמגיעות לכם רשומות, והעריכו כמה כסף זה שווה.</p>
+          </article>
         </div>
       </div>
     </section>
@@ -166,6 +370,8 @@
   <script src="/js/common.js"></script>
   <script src="/js/promo.js"></script>
   <script src="/js/app.js"></script>
+  <script src="/js/explainer.js"></script>
+  <script src="/js/home.js"></script>
   <script src="/js/year.js"></script>
 </body>
 </html>
