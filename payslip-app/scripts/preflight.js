@@ -40,7 +40,7 @@ else out('WARN', 'וואטסאפ כבוי');
 console.log('— תוכן משפטי');
 const pub = path.join(__dirname, '..', 'public');
 const left = fs.readdirSync(pub).filter((f) => f.endsWith('.html')).filter((f) => /\[להשלים[^\]]*\]/.test(fs.readFileSync(path.join(pub, f), 'utf8')));
-need(!left.length, 'אין שדות [להשלים]', `שדות [להשלים] בעמודים: ${left.join(', ')} (שם עסק, ח.פ., כתובת, מייל)`);
+need(!left.length, 'אין שדות [להשלים]', `שדות [להשלים] בעמודים: ${left.join(', ')} `);
 need(!/draft-note/.test(fs.readFileSync(path.join(pub, 'terms.html'), 'utf8')), 'תנאי השימוש ללא סימון טיוטה', 'תנאי השימוש מסומנים כטיוטה: נדרשת בדיקה של עורך דין', 'WARN');
 
 console.log(blockers ? `\n${blockers} חסמים לפני הפעלה.` : '\nאין חסמים.');
