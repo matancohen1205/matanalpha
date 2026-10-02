@@ -32,8 +32,17 @@ services:
         sync: false
       - key: STRIPE_PRICE_ID
         sync: false
+      - key: STRIPE_PRICE_ID_YEARLY
+        sync: false
       - key: PRICE_LABEL
         value: 19.90 ₪ לחודש
+      - key: PRICE_LABEL_YEARLY
+        value: 199 ₪ לשנה
+      # --- סוכן הצ'אט (בלי מפתח פועל עוזר כללים) ---
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: AGENT_DAILY_LIMIT
+        value: "1000"
       # --- שירות לקוחות ---
       - key: SUPPORT_EMAIL
         sync: false

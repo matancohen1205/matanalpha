@@ -160,7 +160,11 @@ if (isProd && waReal && (!(waEnv.DATA_KEY || waEnv.WA_DATA_KEY) || !waEnv.WA_APP
 }
 const dbPath = waEnv.DB_PATH || waEnv.WA_DB_PATH || ':memory:';
 const dataKey = waEnv.DATA_KEY || waEnv.WA_DATA_KEY;
-if (isProd && dbPath === ':memory:') console.warn('WARNING: DB_PATH is not set, so support tickets are not persisted');
+if (isProd && dbPath === ':memory:') {
+  // חשבונות, כספות ופניות נשמרים ב-DB: בלי נתיב קבוע הם היו נמחקים בכל פריסה או הפעלה מחדש
+  throw new Error('DB_PATH is required in production (use a persistent disk, e.g. /data/app.db)');
+}
+if (isProd && !dataKey) throw new Error('DATA_KEY is required in production');
 const waStore = createStore({ path: dbPath, key: dataKey });
 
 // ---------- מנוי ----------

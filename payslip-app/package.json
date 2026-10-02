@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test \"test/*.test.js\"",
-    "build:preview": "node scripts/build-preview.js"
+    "build:preview": "node scripts/build-preview.js",
+    "preflight": "node scripts/preflight.js",
+    "backup": "node scripts/backup.js"
   },
   "keywords": [],
   "author": "",
