@@ -21,7 +21,7 @@ const clean = (s, max) => String(s ?? '').replace(/[\u0000-\u0008\u000b\u000c\u0
  * @param {object|null} o.mailer  אובייקט עם sendMail (nodemailer) או null
  * @param {object} o.config   { supportEmail, supportWhatsapp, supportHours, mailFrom, notifyTo }
  */
-function createSupport({ store, mailer, config = {}, publicUrl }) {
+function createSupport({ store, mailer, config = {}, publicUrl, fetchImpl = fetch }) {
   const router = express.Router();
   const limiter = rateLimit({
     windowMs: 60 * 60 * 1000,
@@ -73,6 +73,9 @@ function createSupport({ store, mailer, config = {}, publicUrl }) {
     const ticket = 'T-' + String(id).padStart(4, '0');
     res.json({ ok: true, ticket });
 
+    const text = `פנייה ${ticket}\nנושא: ${TOPICS[data.topic]}\nשם: ${data.name}\nאימייל: ${data.email}\nטלפון: ${data.phone || '-'}\n\n${data.message}\n`;
+    notify(ticket, text);
+
     if (mailer && (config.notifyTo || config.supportEmail)) {
       mailer
         .sendMail({
@@ -85,6 +88,24 @@ function createSupport({ store, mailer, config = {}, publicUrl }) {
         .catch((e) => console.error('support mail failed:', e.code || e.name));
     }
   });
+
+  /** התראה מיידית לבעל האתר בערוצים שלא דורשים שרת מייל: טלגרם ו-ntfy. כשל לא משפיע על המשתמש. */
+  function notify(ticket, text) {
+    const post = (url, opts) => fetchImpl(url, { ...opts, signal: AbortSignal.timeout(10_000) })
+      .then((r) => { if (!r.ok) console.error('support notify failed:', r.status); })
+      .catch((e) => console.error('support notify failed:', e.name));
+    if (config.telegramToken && config.telegramChatId) {
+      post(`https://api.telegram.org/bot${config.telegramToken}/sendMessage`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ chat_id: config.telegramChatId, text: text.slice(0, 3500), disable_web_page_preview: true }),
+      });
+    }
+    if (config.ntfyTopic) {
+      post(`${config.ntfyServer || 'https://ntfy.sh'}/${encodeURIComponent(config.ntfyTopic)}`, {
+        method: 'POST', headers: { Title: ticket, Tags: 'envelope' }, body: text.slice(0, 3500),
+      });
+    }
+  }
 
   return { router, TOPICS };
 }

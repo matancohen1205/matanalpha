@@ -19,6 +19,7 @@ need(e.TRUST_PROXY === '1', 'TRUST_PROXY=1', 'TRUST_PROXY לא מוגדר: הג�
 console.log('— מייל (איפוס סיסמה, אימות, שחזור מנוי)');
 need(!!e.SMTP_URL, 'SMTP_URL מוגדר', 'SMTP_URL חסר: אין מייל איפוס סיסמה ואימות');
 need(!!e.MAIL_FROM, 'MAIL_FROM מוגדר', 'MAIL_FROM חסר', e.SMTP_URL ? 'FAIL' : 'WARN');
+need(!!((e.TELEGRAM_BOT_TOKEN && e.TELEGRAM_CHAT_ID) || e.NTFY_TOPIC || ((e.SUPPORT_NOTIFY_TO || e.SUPPORT_EMAIL) && e.SMTP_URL)), 'ערוץ התראה על פניות מוגדר', 'אין ערוץ התראה על פניות שירות לקוחות (טלגרם/ntfy/מייל): פניות יישמרו אך לא תקבלו הודעה', 'WARN');
 need(!!e.SUPPORT_EMAIL, 'SUPPORT_EMAIL מוגדר', 'SUPPORT_EMAIL חסר (נדרש בעמוד צור קשר ובפרטיות)', 'WARN');
 
 console.log('— תשלומים');

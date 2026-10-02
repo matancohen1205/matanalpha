@@ -206,3 +206,36 @@ test('עוזר מבוסס כללים מבין שאלות באנגלית, רוס�
   }
   assert.strictEqual(kb.match('asdfgh', []).type, 'none');
 });
+
+test('פנייה לשירות לקוחות מגיעה לבעל האתר בטלגרם וב-ntfy גם בלי SMTP, וכשל בהתראה לא פוגע בפנייה', async () => {
+  const app = require('express')();
+  const { createStore } = require('../src/store');
+  const store = createStore({ key: require('crypto').randomBytes(32).toString('hex') });
+  const calls = [];
+  let fail = false;
+  const fetchImpl = async (url, opts) => { calls.push({ url, opts }); if (fail) throw new Error('down'); return { ok: true, status: 200 }; };
+  const { router } = createSupport({ store, mailer: null, fetchImpl, config: { telegramToken: 'TOK', telegramChatId: '123', ntfyTopic: 'my-secret-topic' } });
+  app.use('/api', router);
+  const server = app.listen(0);
+  const good = { name: 'דנה כהן', email: 'dana@example.com', topic: 'billing', message: 'חויבתי פעמיים החודש, אשמח לבדיקה.', consent: true, elapsedMs: 8000, website: '' };
+  try {
+    const ok = await request(server, 'POST', '/api/contact', good);
+    assert.strictEqual(ok.status, 200);
+    await new Promise((r) => setTimeout(r, 30));
+    const tg = calls.find((c) => c.url === 'https://api.telegram.org/botTOK/sendMessage');
+    assert.ok(tg);
+    const body = JSON.parse(tg.opts.body);
+    assert.strictEqual(body.chat_id, '123');
+    assert.match(body.text, /dana@example\.com/);
+    assert.match(body.text, /חויבתי פעמיים/);
+    const nt = calls.find((c) => c.url === 'https://ntfy.sh/my-secret-topic');
+    assert.ok(nt);
+    assert.match(nt.opts.body, /דנה כהן/);
+    assert.strictEqual(store.listTickets().length, 1);
+    // התראה שנכשלת: הפנייה עדיין נשמרת והמשתמש מקבל הצלחה
+    fail = true;
+    assert.strictEqual((await request(server, 'POST', '/api/contact', { ...good, message: 'פנייה שנייה עם כשל בהתראה.' })).status, 200);
+    await new Promise((r) => setTimeout(r, 30));
+    assert.strictEqual(store.listTickets().length, 2);
+  } finally { server.close(); }
+});

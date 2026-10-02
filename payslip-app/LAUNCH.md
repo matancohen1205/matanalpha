@@ -22,3 +22,11 @@
 - **ניטור:** הוסיפו בדיקת זמינות חיצונית ל-`/healthz` (למשל UptimeRobot).
 - **תלויות:** Dependabot ו-CodeQL כבר מוגדרים; `npm audit` רץ ב-CI.
 - **נתוני חוק:** בתחילת כל שנה עדכנו את `public/js/tax-core.js` ו-`public/js/rights-core.js` מול מקור רשמי.
+
+## קבלת פניות שירות לקוחות
+כל פנייה נשמרת מוצפנת ב-DB, ובנוסף נשלחת אליכם מיד:
+- **טלגרם (הכי פשוט, בלי דומיין):** פתחו בוט ב-@BotFather, שלחו לו הודעה כלשהי, וקבלו את ה-chat id מ-`https://api.telegram.org/bot<TOKEN>/getUpdates`. הגדירו `TELEGRAM_BOT_TOKEN` ו-`TELEGRAM_CHAT_ID`.
+- **ntfy:** התקינו את אפליקציית ntfy, הירשמו לנושא ארוך וקשה לניחוש (מי שמכיר אותו יכול לקרוא), והגדירו `NTFY_TOPIC`.
+- **מייל:** `SUPPORT_NOTIFY_TO` (או `SUPPORT_EMAIL`) יחד עם SMTP.
+- **בלי הגדרה:** קריאה ידנית בשרת: `node scripts/tickets.js` (סימון כטופלה: `node scripts/tickets.js close 12`).
+לענות למשתמש אפשר במייל שהוא השאיר (במייל ההתראה מוגדר Reply-To אליו).

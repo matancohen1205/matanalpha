@@ -226,6 +226,10 @@ function buildSupport(over = {}) {
       supportHours: waEnv.SUPPORT_HOURS,
       mailFrom: waEnv.MAIL_FROM,
       notifyTo: waEnv.SUPPORT_NOTIFY_TO,
+      telegramToken: waEnv.TELEGRAM_BOT_TOKEN,
+      telegramChatId: waEnv.TELEGRAM_CHAT_ID,
+      ntfyTopic: waEnv.NTFY_TOPIC,
+      ntfyServer: waEnv.NTFY_SERVER,
     },
     ...over,
   });
