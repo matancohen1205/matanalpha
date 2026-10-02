@@ -15,6 +15,7 @@ const crypto = require('crypto');
 const { createStore } = require('./src/store');
 const { createSupport } = require('./src/support');
 const { createAgent } = require('./src/agent');
+const { createAdmin } = require('./src/admin');
 const { createAccounts } = require('./src/accounts');
 const { createWhatsApp, createMetaClient, createDevClient } = require('./src/whatsapp');
 
@@ -120,7 +121,7 @@ for (const name of HTML_PAGES) {
 app.get(['/login', '/login.html'], (req, res) => sendPage(res, 'account.html', '/login.html'));
 app.get(['/signup', '/signup.html'], (req, res) => sendPage(res, 'account.html', '/signup.html'));
 
-const NO_INDEX = new Set(['account']);
+const NO_INDEX = new Set(['account', 'admin']);
 app.get('/robots.txt', (req, res) => {
   res.type('text').send(`User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /account.html\nDisallow: /login.html\nDisallow: /signup.html\n${SITE_ORIGIN ? `Sitemap: ${SITE_ORIGIN}/sitemap.xml\n` : ''}`);
 });
@@ -247,6 +248,15 @@ function buildAgent(over = {}) {
 const agentRef = { current: buildAgent() };
 app.setAgent = (over) => { agentRef.current = buildAgent(over); return agentRef.current; }; // לבדיקות
 api.use('/agent', (req, res, next) => agentRef.current.router(req, res, next));
+
+// ---------- ממשק אדמין (בעל האתר בלבד; כבוי בלי ADMIN_PASSWORD) ----------
+function buildAdmin(over = {}) {
+  return createAdmin({ store: waStore, password: process.env.ADMIN_PASSWORD, secret: tokenSecret, secure: isProd, ...over });
+}
+const adminRef = { current: buildAdmin() };
+app.store = waStore; // לבדיקות
+app.setAdmin = (over) => { adminRef.current = buildAdmin(over); return adminRef.current; }; // לבדיקות
+api.use('/admin', (req, res, next) => adminRef.current.router(req, res, next));
 
 // ---------- חשבונות (כספת מוצפנת בצד לקוח) ----------
 function buildAccounts(over = {}) {

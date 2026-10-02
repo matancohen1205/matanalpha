@@ -44,6 +44,8 @@ services:
       - key: AGENT_DAILY_LIMIT
         value: "1000"
       # --- שירות לקוחות ---
+      - key: ADMIN_PASSWORD       # סיסמת ממשק הניהול /admin.html (12+ תווים). בלעדיה הממשק כבוי
+        sync: false
       - key: SUPPORT_EMAIL
         sync: false
       - key: SUPPORT_HOURS

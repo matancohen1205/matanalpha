@@ -73,9 +73,14 @@ for f in glob.glob(os.path.join(root, '*.html')):
     d = re.search(r'<meta name="description" content="([^"]*)"', s)
     if t and d:
         s = s.replace('<meta property="og:type"', '<meta property="og:title" content="%s">\n  <meta property="og:description" content="%s">\n  <meta property="og:type"' % (t.group(1).strip(), d.group(1)), 1)
-    if os.path.basename(f) in ('account.html',) and 'name="robots"' not in s:
+    if os.path.basename(f) in ('account.html', 'admin.html') and 'name="robots"' not in s:
         s = s.replace('<meta name="color-scheme"', '<meta name="robots" content="noindex">\n  <meta name="color-scheme"', 1)
-    # סקריפטים משותפים בכל דף
+    # סקריפטים משותפים בכל דף (עמוד הניהול לא טוען צ'אט ופופ-אפ)
+    if os.path.basename(f) == 'admin.html':
+        s = s.replace('  <script src="/js/chat-kb.js"></script>\n','').replace('  <script src="/js/chatbot.js"></script>\n','').replace('  <script src="/js/promo.js"></script>\n','')
+        open(f, 'w', encoding='utf-8').write(s)
+        print('synced', os.path.basename(f))
+        continue
     if '/js/util.js' not in s:
         s = s.replace('<script src="/js/common.js"></script>', '<script src="/js/util.js"></script>\n  <script src="/js/common.js"></script>')
     if '/js/chatbot.js' not in s:

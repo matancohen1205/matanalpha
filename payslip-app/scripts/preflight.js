@@ -22,6 +22,8 @@ need(!!e.MAIL_FROM, 'MAIL_FROM מוגדר', 'MAIL_FROM חסר', e.SMTP_URL ? 'FA
 need(!!((e.TELEGRAM_BOT_TOKEN && e.TELEGRAM_CHAT_ID) || e.NTFY_TOPIC || ((e.SUPPORT_NOTIFY_TO || e.SUPPORT_EMAIL) && e.SMTP_URL)), 'ערוץ התראה על פניות מוגדר', 'אין ערוץ התראה על פניות שירות לקוחות (טלגרם/ntfy/מייל): פניות יישמרו אך לא תקבלו הודעה', 'WARN');
 need(!!e.SUPPORT_EMAIL, 'SUPPORT_EMAIL מוגדר', 'SUPPORT_EMAIL חסר (נדרש בעמוד צור קשר ובפרטיות)', 'WARN');
 
+need((e.ADMIN_PASSWORD || '').length >= 12, 'ממשק ניהול פניות מופעל (/admin.html)', 'ADMIN_PASSWORD חסר או קצר מ-12 תווים: ממשק הניהול כבוי', 'WARN');
+
 console.log('— תשלומים');
 const stripe = !!e.STRIPE_SECRET_KEY;
 need(stripe, 'Stripe מוגדר', 'STRIPE_SECRET_KEY חסר: אי אפשר להצטרף ל-Pro', 'WARN');

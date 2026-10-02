@@ -1976,3 +1976,10 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { border-color
 .file-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
 .file-btn { cursor: pointer; }
 .file-hidden:focus-visible + .file-btn { outline: 3px solid var(--primary); outline-offset: 2px; }
+
+/* ממשק ניהול פניות */
+.ad-list { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: 1rem; }
+.ad-ticket { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; display: grid; gap: .6rem; }
+.ad-ticket.done { opacity: .7; }
+.ad-head, .ad-who { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
+.ad-msg { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
