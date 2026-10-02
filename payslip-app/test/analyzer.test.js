@@ -54,3 +54,15 @@ test('נקודות תואר: תקופת זכאות של 12 חודשים מהחו
   assert.strictEqual(pts({ degree: 'ba', degreeEnd: '2025-09-30' }), base); // עדיין לא התחילה
   assert.strictEqual(pts({ degree: 'none', degreeEnd: '2025-06-30' }), base);
 });
+
+test('נקודות שחרור: 36 חודשים מהחודש שאחרי השחרור, ללא ערכי ענק', () => {
+  const T = require('../public/js/tax-core.js');
+  const pts = (prof) => T.estimateCredits({ gender: 'm', taxYear: 2025, today: '2025-09-01', ...prof }).total;
+  const base = pts({});
+  assert.strictEqual(pts({ dischargeDate: '2024-01-31' }), base + 2);
+  assert.strictEqual(pts({ dischargeDate: '2022-09-30' }), base + 2); // החודש האחרון בחלון
+  assert.strictEqual(pts({ dischargeDate: '2022-08-31' }), base); // פג
+  assert.strictEqual(pts({ dischargeDate: '2026-01-01' }), base); // עתידי
+  assert.strictEqual(pts({}), base);
+  assert.ok(pts({ dischargeDate: '2025-01-15', degree: 'ba', degreeEnd: '2025-06-30' }) <= base + 3);
+});

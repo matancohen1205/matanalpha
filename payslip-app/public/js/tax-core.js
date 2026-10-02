@@ -129,14 +129,17 @@
    * @param {string=} todayISO
    * @returns {{valid:boolean, status?:'future'|'active'|'expired', active?:boolean, start?:string, end?:string, error?:string}}
    */
-  function degreeWindow(endISO, todayISO) {
+  function degreeWindow(endISO, todayISO) { return periodWindow(endISO, 12, todayISO); }
+
+  /** חלון זכאות של N חודשים שמתחיל בחודש שאחרי תאריך האירוע (סיום לימודים / שחרור) */
+  function periodWindow(endISO, months, todayISO) {
     var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(endISO || ''));
     if (!m) return { valid: false, active: false };
     var y = +m[1], mo = +m[2], d = +m[3];
     var chk = new Date(Date.UTC(y, mo - 1, d));
     if (chk.getUTCFullYear() !== y || chk.getUTCMonth() !== mo - 1 || chk.getUTCDate() !== d) return { valid: false, active: false };
     var start = new Date(Date.UTC(y, mo, 1)); // תחילת החודש שאחרי הסיום
-    var end = new Date(Date.UTC(y, mo + 12, 1)); // בלעדי: 12 חודשים מלאים
+    var end = new Date(Date.UTC(y, mo + months, 1)); // בלעדי: מספר החודשים המלא
     var today = todayISO || ymd(new Date());
     var status = today < ymd(start) ? 'future' : today >= ymd(end) ? 'expired' : 'active';
     var lastDay = new Date(end.getTime() - 864e5);
@@ -145,7 +148,7 @@
 
   /**
    * הערכת נקודות זיכוי לפי פרופיל.
-   * @param {{gender:'m'|'f', children?:number[], singleParent?:boolean, degree?:'none'|'ba'|'ma', degreeWithinYear?:boolean, dischargedMonthsLeft?:number, taxYear?:number}} prof
+   * @param {{gender:'m'|'f', children?:number[], singleParent?:boolean, degree?:'none'|'ba'|'ma', degreeWithinYear?:boolean, degreeEnd?:string, dischargeDate?:string, taxYear?:number}} prof
    */
   function estimateCredits(prof) {
     var year = prof.taxYear || TAX_DATA.year;
@@ -179,8 +182,9 @@
         else add('תואר שני', 0.5, 'חצי נקודה במשך 12 חודשים מסיום הלימודים');
       }
     }
-    var m = Math.min(36, Math.max(0, Number(prof.dischargedMonthsLeft) || 0));
-    if (m > 0) add('חייל/ת משוחרר/ת', (m / 12) * 2, 'שליש נקודה לחודש בחישוב מקורב, עד 36 חודשים');
+    if (prof.dischargeDate && periodWindow(prof.dischargeDate, 36, prof.today).active) {
+      add('חייל/ת משוחרר/ת', 2, '2 נקודות במשך 36 חודשים מהשחרור (הערכה מקורבת; זכאות מלאה כפופה למשך השירות)');
+    }
 
     var total = rows.reduce(function (s, r) { return s + r.points; }, 0);
     return { total: round2(total), rows: rows, year: year };
@@ -197,6 +201,7 @@
     netToGross: netToGross,
     estimateCredits: estimateCredits,
     degreeWindow: degreeWindow,
+    periodWindow: periodWindow,
     pointsValue: pointsValue,
   };
 });
