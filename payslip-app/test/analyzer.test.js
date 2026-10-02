@@ -35,3 +35,22 @@ test('סכום שלילי בתלוש נקרא כניכוי חיובי, וקיצ�
   assert.strictEqual(by.study_fund_employer, 900);
   assert.strictEqual(by.vacation_pay, 1200);
 });
+
+test('נקודות תואר: תקופת זכאות של 12 חודשים מהחודש שאחרי סיום הלימודים', () => {
+  const T = require('../public/js/tax-core.js');
+  const w = (end, today) => T.degreeWindow(end, today);
+  assert.deepStrictEqual(w('2025-06-30', '2025-06-30'), { valid: true, status: 'future', active: false, start: '2025-07-01', end: '2026-06-30' });
+  assert.strictEqual(w('2025-06-30', '2025-07-01').status, 'active');
+  assert.strictEqual(w('2025-06-30', '2026-06-30').status, 'active');
+  assert.strictEqual(w('2025-06-30', '2026-07-01').status, 'expired');
+  assert.strictEqual(w('2025-12-15', '2026-12-31').end, '2026-12-31');
+  assert.strictEqual(w('2025-02-30', '2025-03-01').valid, false);
+  assert.strictEqual(w('', '2025-03-01').valid, false);
+  const pts = (prof) => T.estimateCredits({ gender: 'm', taxYear: 2025, today: '2025-09-01', ...prof }).total;
+  const base = pts({});
+  assert.strictEqual(pts({ degree: 'ba', degreeEnd: '2025-06-30' }), base + 1);
+  assert.strictEqual(pts({ degree: 'ma', degreeEnd: '2025-06-30' }), base + 0.5);
+  assert.strictEqual(pts({ degree: 'ba', degreeEnd: '2023-06-30' }), base); // פג תוקף
+  assert.strictEqual(pts({ degree: 'ba', degreeEnd: '2025-09-30' }), base); // עדיין לא התחילה
+  assert.strictEqual(pts({ degree: 'none', degreeEnd: '2025-06-30' }), base);
+});

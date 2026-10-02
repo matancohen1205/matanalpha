@@ -121,6 +121,28 @@
 
   /* ---------------- נקודות זיכוי ---------------- */
 
+  function ymd(d) { return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0'); }
+
+  /**
+   * תקופת הזכאות לנקודות על תואר: 12 חודשים החל מתחילת החודש שאחרי סיום הלימודים (הנחה מקורבת, יש לאמת מול רשות המסים).
+   * @param {string} endISO תאריך סיום לימודים YYYY-MM-DD
+   * @param {string=} todayISO
+   * @returns {{valid:boolean, status?:'future'|'active'|'expired', active?:boolean, start?:string, end?:string, error?:string}}
+   */
+  function degreeWindow(endISO, todayISO) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(endISO || ''));
+    if (!m) return { valid: false, active: false };
+    var y = +m[1], mo = +m[2], d = +m[3];
+    var chk = new Date(Date.UTC(y, mo - 1, d));
+    if (chk.getUTCFullYear() !== y || chk.getUTCMonth() !== mo - 1 || chk.getUTCDate() !== d) return { valid: false, active: false };
+    var start = new Date(Date.UTC(y, mo, 1)); // תחילת החודש שאחרי הסיום
+    var end = new Date(Date.UTC(y, mo + 12, 1)); // בלעדי: 12 חודשים מלאים
+    var today = todayISO || ymd(new Date());
+    var status = today < ymd(start) ? 'future' : today >= ymd(end) ? 'expired' : 'active';
+    var lastDay = new Date(end.getTime() - 864e5);
+    return { valid: true, status: status, active: status === 'active', start: ymd(start), end: ymd(lastDay) };
+  }
+
   /**
    * הערכת נקודות זיכוי לפי פרופיל.
    * @param {{gender:'m'|'f', children?:number[], singleParent?:boolean, degree?:'none'|'ba'|'ma', degreeWithinYear?:boolean, dischargedMonthsLeft?:number, taxYear?:number}} prof
@@ -150,8 +172,13 @@
     });
 
     if (prof.singleParent && (prof.children || []).length) add('הורה יחיד/ה', 1, 'תוספת להורה יחידני');
-    if (prof.degree === 'ba' && prof.degreeWithinYear) add('תואר ראשון (שנה אחרי סיום)', 1, 'בתוך 3 שנים מסיום הלימודים');
-    if (prof.degree === 'ma' && prof.degreeWithinYear) add('תואר שני (שנה אחרי סיום)', 0.5, 'בתוך שנה מסיום');
+    if (prof.degree === 'ba' || prof.degree === 'ma') {
+      var active = prof.degreeEnd ? degreeWindow(prof.degreeEnd, prof.today).active : !!prof.degreeWithinYear;
+      if (active) {
+        if (prof.degree === 'ba') add('תואר ראשון', 1, 'נקודה אחת במשך 12 חודשים מסיום הלימודים');
+        else add('תואר שני', 0.5, 'חצי נקודה במשך 12 חודשים מסיום הלימודים');
+      }
+    }
     var m = Math.min(36, Math.max(0, Number(prof.dischargedMonthsLeft) || 0));
     if (m > 0) add('חייל/ת משוחרר/ת', (m / 12) * 2, 'שליש נקודה לחודש בחישוב מקורב, עד 36 חודשים');
 
@@ -169,6 +196,7 @@
     grossToNet: grossToNet,
     netToGross: netToGross,
     estimateCredits: estimateCredits,
+    degreeWindow: degreeWindow,
     pointsValue: pointsValue,
   };
 });

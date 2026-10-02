@@ -1983,3 +1983,4 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { border-color
 .ad-ticket.done { opacity: .7; }
 .ad-head, .ad-who { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
 .ad-msg { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ok-text { color: var(--accent); font-weight: 600; }

@@ -84,7 +84,11 @@
               <option value="ma">תואר שני</option>
             </select>
           </div>
-          <label class="check"><input id="degree-recent" type="checkbox"> סיימתי לאחרונה (בתוך התקופה שבה הזכאות בתוקף)</label>
+          <div class="field" id="degree-date-field" hidden>
+            <label for="degree-end">תאריך סיום הלימודים</label>
+            <input id="degree-end" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="dd/mm/yyyy" dir="ltr" aria-describedby="degree-msg">
+            <small id="degree-msg" role="status" aria-live="polite"></small>
+          </div>
           <div class="field">
             <label for="discharge">חודשים שנותרו מ-36 לאחר שחרור משירות</label>
             <input id="discharge" type="number" min="0" max="36" step="1" value="0">

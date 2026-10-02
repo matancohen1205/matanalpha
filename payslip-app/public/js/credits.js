@@ -22,10 +22,48 @@
     });
   }
 
+  /* ---------- תאריך סיום לימודים: הקלדה dd/mm/yyyy ---------- */
+  function parseDmy(t) {
+    var m = /^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/.exec(t);
+    if (!m) return null;
+    var d = +m[1], mo = +m[2], y = +m[3], dt = new Date(Date.UTC(y, mo - 1, d));
+    if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== mo - 1 || dt.getUTCDate() !== d) return null;
+    return y + '-' + (mo < 10 ? '0' : '') + mo + '-' + (d < 10 ? '0' : '') + d;
+  }
+  function formatDigits(raw) {
+    var dg = raw.replace(/\D/g, '').slice(0, 8);
+    return dg.length > 4 ? dg.slice(0, 2) + '/' + dg.slice(2, 4) + '/' + dg.slice(4) : dg.length > 2 ? dg.slice(0, 2) + '/' + dg.slice(2) : dg;
+  }
+  $('degree-end').addEventListener('input', function () {
+    var el = $('degree-end');
+    var clean = el.value.replace(/[^\d\/.-]/g, '').slice(0, 10);
+    var parts = clean.split(/[\/.-]/);
+    el.value = (parts.length >= 3 || (parts.length === 2 && parts[1].length <= 2)) ? clean : formatDigits(clean);
+  });
+  function fmt(iso) { return iso.split('-').reverse().join('/'); }
+  /** מחזיר ISO תקין של סיום הלימודים או '' ומעדכן את ההודעה מתחת לשדה */
+  function degreeState() {
+    var has = $('degree').value !== 'none';
+    $('degree-date-field').hidden = !has;
+    var msg = $('degree-msg');
+    msg.className = 'muted';
+    if (!has) { msg.textContent = ''; return ''; }
+    var t = $('degree-end').value.trim();
+    if (!t) { msg.textContent = 'הזינו את תאריך סיום הלימודים כדי לבדוק אם אתם בתקופת הזכאות.'; return ''; }
+    var iso = parseDmy(t);
+    if (!iso) { msg.textContent = /^\d{1,2}[\/.-]\d{1,2}[\/.-]\d{4}$/.test(t) ? 'תאריך לא קיים. הזינו יום/חודש/שנה, למשל 30/06/2025.' : 'הזינו תאריך מלא בפורמט יום/חודש/שנה, למשל 30/06/2025.'; return ''; }
+    var w = T.degreeWindow(iso);
+    if (w.status === 'future') msg.textContent = 'הזכאות מתחילה ב-' + fmt(w.start) + ' (עד ' + fmt(w.end) + '). עדיין לא נספרות נקודות.';
+    else if (w.status === 'active') { msg.textContent = '✓ אתם בתקופת הזכאות: ' + fmt(w.start) + ' עד ' + fmt(w.end) + '.'; msg.className = 'ok-text'; }
+    else { msg.textContent = 'תקופת הזכאות הסתיימה ב-' + fmt(w.end) + '. לא נספרות נקודות על התואר.'; }
+    return iso;
+  }
+
   function update() {
+    var degreeEnd = degreeState();
     var prof = {
       gender: genderVal(), children: kids.slice(), singleParent: $('single').checked,
-      degree: $('degree').value, degreeWithinYear: $('degree-recent').checked,
+      degree: $('degree').value, degreeEnd: degreeEnd,
       dischargedMonthsLeft: PS.num($('discharge').value) || 0, taxYear: thisYear,
     };
     var r = T.estimateCredits(prof);
