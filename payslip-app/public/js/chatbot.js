@@ -20,13 +20,13 @@
   /* ---------- מבנה ---------- */
   var fab = h('button', { class: 'chat-fab', type: 'button', id: 'chat-fab', 'aria-label': 'פתיחת צ\'אט עזרה', 'aria-expanded': 'false', 'aria-controls': 'chat-panel', dir: 'rtl' });
   fab.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10h8M8 13h5"/></svg>';
-  var hint = h('div', { class: 'chat-hint', hidden: 'hidden', dir: 'rtl', text: 'צריכים עזרה? אני כאן 👋' });
+  var hint = h('div', { class: 'chat-hint', hidden: 'hidden', dir: 'rtl', text: 'צריכים עזרה? אני כאן ' });
 
   var list = h('div', { class: 'chat-log', role: 'log', 'aria-live': 'polite', 'aria-label': 'שיחה עם עוזר האתר', tabindex: '0' });
   var input = h('input', { type: 'text', id: 'chat-input', placeholder: 'כתבו שאלה…', 'aria-label': 'הודעה לעוזר', maxlength: '300', autocomplete: 'off' });
   var send = h('button', { class: 'chat-send', type: 'submit', 'aria-label': 'שליחה', text: '←' });
   var form = h('form', { class: 'chat-form' }, [input, send]);
-  var human = h('a', { class: 'chat-human', href: KB.URL.contact, text: '💬 שירות לקוחות' });
+  var human = h('a', { class: 'chat-human', href: KB.URL.contact, text: 'שירות לקוחות' });
   var closeBtn = h('button', { class: 'icon-btn chat-x', type: 'button', 'aria-label': 'סגירת הצ\'אט', text: '✕' });
   var panel = h('section', { class: 'chat-panel', id: 'chat-panel', role: 'dialog', 'aria-label': 'עוזר האתר', dir: 'rtl', lang: 'he', hidden: 'hidden' }, [
     h('header', { role: 'group' }, [h('div', {}, [h('strong', { text: 'עוזר האתר' }), h('small', { text: 'עונה על שאלות שימוש. לא מחליף ייעוץ מקצועי.' })]), closeBtn]),

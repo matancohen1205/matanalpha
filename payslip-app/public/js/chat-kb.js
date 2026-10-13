@@ -26,7 +26,7 @@
     account: '/account.html',
   };
 
-  var CONTACT = { label: '💬 פנייה לשירות לקוחות', href: URL.contact };
+  var CONTACT = { label: 'פנייה לשירות לקוחות', href: URL.contact };
 
   /** כל ערך: מילות מפתח (ביטויים), תשובה וכפתורי המשך */
   var INTENTS = [

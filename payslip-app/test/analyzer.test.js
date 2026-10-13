@@ -66,3 +66,9 @@ test('נקודות שחרור: 36 חודשים מהחודש שאחרי השחר�
   assert.strictEqual(pts({}), base);
   assert.ok(pts({ dischargeDate: '2025-01-15', degree: 'ba', degreeEnd: '2025-06-30' }) <= base + 3);
 });
+
+test('שורה עם סכום ש-OCR קרא כטקסט לועזי שגוי מופיעה כשורה שלא זוהתה ולא נזרקת בשקט', () => {
+  const { analyzePayslip } = require('../src/analyzer');
+  const r = analyzePayslip('מס הכנסה 1,480.00\nDY 101 9,763.84');
+  assert.ok(r.unknown.some((u) => /9,763\.84/.test(u.line)));
+});

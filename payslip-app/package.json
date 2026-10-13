@@ -16,6 +16,7 @@
   "dependencies": {
     "@tesseract.js-data/eng": "^1.0.0",
     "@tesseract.js-data/heb": "^1.0.0",
+    "compression": "^1.8.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.0",
     "helmet": "^8.3.0",

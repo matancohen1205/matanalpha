@@ -1,5 +1,5 @@
 // בדיקת נגישות אוטומטית (axe-core) לכל הדפים במצב בהיר וכהה. הרצה: node server.js & node scripts/a11y-check.js
-// משתנים: BASE (ברירת מחדל http://localhost:3000), CHROME (נתיב לדפדפן)
+// דורש playwright-core: npm i -D playwright-core. משתנים: BASE (ברירת מחדל http://localhost:3000), CHROME (נתיב לדפדפן)
 const { chromium } = require('playwright-core'); const fs=require('fs'); const path=require('path');
 const axeSrc=fs.readFileSync(path.join(__dirname,'..','node_modules','axe-core','axe.min.js'),'utf8');
 const BASE=process.env.BASE||'http://localhost:3000';

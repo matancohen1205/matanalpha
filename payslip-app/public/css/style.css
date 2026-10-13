@@ -1984,3 +1984,16 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { border-color
 .ad-head, .ad-who { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
 .ad-msg { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .ok-text { color: var(--accent); font-weight: 600; }
+
+/* ===== שפה עיצובית אחידה: פינות מרובעות מעט, ללא כפתורי קפסולה ואנימציות קישוט ===== */
+:root { --r-ctl: 8px; }
+.chip, .seg-btn, .g-tab, .chat-act, .chat-quick, .header-inner .lang-select, .lang-select { border-radius: var(--r-ctl); }
+.badge, .pro-tag, .pro-badge { border-radius: 6px; }
+.file-btn, .btn, .icon-btn, .tab { border-radius: var(--r-ctl); }
+.tool-card:hover, .persona:hover, .step-card:hover, .stat-pill:hover { transform: none; box-shadow: none; }
+.tool-card, .persona, .step-card, .stat-pill { transition: border-color .15s; }
+.rv-ready .reveal, .rv-ready .reveal.in { transform: none; transition: none; }
+.blob { display: none; }
+.g-panel:not([hidden]) img { animation: none; }
+.promo, .chat-panel, .promo-overlay { animation: none; }
+.btn:active { transform: none; }

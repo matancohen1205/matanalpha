@@ -21,7 +21,7 @@
     if (s.linked) {
       stopPoll();
       box.append(
-        h('div', { class: 'status-line' }, [h('strong', { text: 'מחובר ✅ ' }), h('span', { class: 'ltr-num', text: s.phone })]),
+        h('div', { class: 'status-line' }, [h('strong', { text: 'מחובר ' }), h('span', { class: 'ltr-num', text: s.phone })]),
         msg('שלחו לבוט תמונה או PDF של התלוש בוואטסאפ. כדי להפסיק, שלחו לבוט "הפסק" או לחצו כאן.'),
         h('div', { class: 'form-actions' }, [h('button', { class: 'btn btn-ghost', type: 'button', text: 'ניתוק ומחיקת הנתונים',
           onclick: function () { PS.post('/api/whatsapp/unlink').then(refresh); } })])

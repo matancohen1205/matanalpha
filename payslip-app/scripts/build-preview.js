@@ -51,7 +51,7 @@ const accountView = `<section class="container tool-view" id="view-account" hidd
 let appJs = pub('js/app.js');
 appJs = patch(
   appJs,
-  "h('button', { class: 'btn', type: 'button', text: '🖨️ הדפסה / שמירה כ-PDF', onclick: function () { window.print(); } }),",
+  "h('button', { class: 'btn', type: 'button', text: 'הדפסה / שמירה כ-PDF', onclick: function () { window.print(); } }),",
   ''
 );
 let commonJs = patch(pub('js/common.js'), '/accessibility.html', '#accessibility');

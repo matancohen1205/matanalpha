@@ -16,6 +16,7 @@ const { createStore } = require('./src/store');
 const { createSupport } = require('./src/support');
 const { createAgent } = require('./src/agent');
 const { createAdmin } = require('./src/admin');
+const compression = require('compression');
 const { createAccounts } = require('./src/accounts');
 const { createWhatsApp, createMetaClient, createDevClient } = require('./src/whatsapp');
 
@@ -102,6 +103,7 @@ app.get('/.well-known/security.txt', (req, res) => {
   );
 });
 
+app.use(compression()); // דחיסת HTML/CSS/JS/JSON: פחות בתים בנייד
 app.get('/healthz', (req, res) => res.type('text').send('ok'));
 
 // ---------- דפי HTML: הזרקת כתובת האתר (canonical ו-Open Graph), robots ו-sitemap ----------

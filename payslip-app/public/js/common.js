@@ -55,7 +55,7 @@
   var OPTIONS = [
     { k: 'contrast', v: 'high', ico: '◐', t: 'ניגודיות גבוהה' },
     { k: 'gray', v: 'on', ico: '◑', t: 'גווני אפור' },
-    { k: 'links', v: 'on', ico: '🔗', t: 'הדגשת קישורים' },
+    { k: 'links', v: 'on', ico: 'ab', t: 'הדגשת קישורים' },
     { k: 'headings', v: 'on', ico: 'H', t: 'הדגשת כותרות' },
     { k: 'font', v: 'readable', ico: 'Aa', t: 'גופן קריא' },
     { k: 'spacing', v: 'on', ico: '↕', t: 'ריווח טקסט' },

@@ -85,7 +85,7 @@ function analyzePayslip(rawText) {
     const entry = matchLine(line);
     const numbers = extractNumbers(line);
     if (!entry) {
-      if (numbers.some((n) => n.decimal) && /[א-ת]/.test(line) && unknown.length < 25) {
+      if (numbers.some((n) => n.decimal) && /[א-תA-Za-z]/.test(line) && unknown.length < 25) {
         unknown.push({ line: line.slice(0, 140), amount: pickAmount({ type: 'earning' }, numbers) });
       }
       continue;

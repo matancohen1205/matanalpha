@@ -137,7 +137,7 @@
     var kb = Math.max(1, Math.round(state.file.size / 1024));
     el.chipBox.append(
       h('div', { class: 'file-chip' }, [
-        h('span', { text: '📄 ' + state.file.name + ' (' + kb + ' KB)' }),
+        h('span', { text: '' + state.file.name + ' (' + kb + ' KB)' }),
         h('button', {
           type: 'button', class: 'btn btn-ghost btn-sm', text: 'הסרה', 'aria-label': 'הסרת הקובץ',
           onclick: function () { el.input.value = ''; setFile(null); },
@@ -321,10 +321,10 @@
     );
     right.append(
       h('div', { class: 'form-actions no-print' }, [
-        h('button', { class: 'btn', type: 'button', text: '🖨️ הדפסה / שמירה כ-PDF', onclick: function () { window.print(); } }),
-        h('button', { class: 'btn btn-ghost', type: 'button', text: '💾 שמירה בחשבון', onclick: saveToAccount }),
+        h('button', { class: 'btn', type: 'button', text: 'הדפסה / שמירה כ-PDF', onclick: function () { window.print(); } }),
+        h('button', { class: 'btn btn-ghost', type: 'button', text: 'שמירה בחשבון', onclick: saveToAccount }),
         h('button', {
-          class: 'btn btn-ghost', type: 'button', text: '🗑️ מחיקת הנתונים והתחלה מחדש', onclick: resetAll,
+          class: 'btn btn-ghost', type: 'button', text: 'מחיקת הנתונים והתחלה מחדש', onclick: resetAll,
         }),
         h('p', { class: 'muted small', id: 'save-note', role: 'status' }),
       ])
