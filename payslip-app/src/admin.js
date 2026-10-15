@@ -64,6 +64,12 @@ function createAdmin({ store, password, secret, secure = false, now = () => Date
     res.json({ ok: true });
   });
 
+  router.delete('/tickets/:id', requireAdmin, (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id < 1) return res.status(400).json({ error: 'BAD_INPUT' });
+    res.json({ ok: true, deleted: store.deleteTicket(id) });
+  });
+
   return { router, enabled };
 }
 

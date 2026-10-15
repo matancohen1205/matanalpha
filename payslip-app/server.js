@@ -103,6 +103,13 @@ app.get('/.well-known/security.txt', (req, res) => {
   );
 });
 
+// הפניה ל-HTTPS מאחורי פרוקסי (רק כשהפרוקסי מצהיר במפורש על http, כדי לא ליצור לולאה כשאין כותרת)
+if (isProd) {
+  app.use((req, res, next) => {
+    if (req.headers['x-forwarded-proto'] === 'http' && req.path !== '/healthz') return res.redirect(301, `https://${req.headers.host}${req.originalUrl}`);
+    next();
+  });
+}
 app.use(compression()); // דחיסת HTML/CSS/JS/JSON: פחות בתים בנייד
 app.get('/healthz', (req, res) => res.type('text').send('ok'));
 
@@ -361,6 +368,10 @@ app.use((err, req, res, next) => {
     const tooBig = err.code === 'LIMIT_FILE_SIZE';
     return res.status(tooBig ? 413 : 400).json({ error: err.code, message: tooBig ? 'הקובץ גדול מדי (עד 8MB).' : 'הבקשה אינה תקינה.' });
   }
+  // טופס multipart פגום (גבול חסר, גוף קטוע): טעות לקוח, לא שגיאת שרת
+  if (/multipart|boundary|unexpected end of form|malformed part|header size|too many (parts|files|fields)/i.test(String(err.message))) {
+    return res.status(400).json({ error: 'BAD_FORM', message: 'הבקשה אינה תקינה.' });
+  }
   if (err.type === 'entity.parse.failed') {
     return res.status(400).json({ error: 'BAD_JSON', message: 'הבקשה אינה תקינה.' });
   }
@@ -382,6 +393,13 @@ if (require.main === module) {
     );
   } else {
     console.warn('SMTP_URL is not set: password recovery and verification emails are disabled');
+  }
+  // גיבוי אוטומטי יומי של המסד (עותק עקבי, שמירת 7 האחרונים) לתיקיית backups ליד המסד
+  if (dbPath !== ':memory:' && process.env.AUTO_BACKUP !== '0') {
+    const { runBackup } = require('./src/backup');
+    const tick = () => { try { console.log('backup:', runBackup(dbPath, Number(process.env.BACKUP_KEEP) || 7)); } catch (e) { console.error('backup failed:', e.code || e.name); } };
+    setTimeout(tick, 60_000).unref();
+    setInterval(tick, 24 * 3600 * 1000).unref();
   }
   // הגנה מ-slowloris וחיבורים תקועים
   server.headersTimeout = 20_000;

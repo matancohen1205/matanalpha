@@ -114,6 +114,7 @@ function createStore({ path = ':memory:', key } = {}) {
     addTicket: db.prepare('INSERT INTO tickets (created_at, data_enc) VALUES (?, ?)'),
     tickets: db.prepare('SELECT id, created_at, status, data_enc FROM tickets ORDER BY id DESC LIMIT ?'),
     setTicket: db.prepare('UPDATE tickets SET status = ? WHERE id = ?'),
+    delTicket: db.prepare('DELETE FROM tickets WHERE id = ?'),
     purgeTickets: db.prepare('DELETE FROM tickets WHERE created_at < ?'),
   };
 
@@ -175,6 +176,7 @@ function createStore({ path = ':memory:', key } = {}) {
       return q.tickets.all(limit).map((r) => ({ id: Number(r.id), createdAt: Number(r.created_at), status: r.status, ...JSON.parse(decrypt(r.data_enc)) }));
     },
     setTicketStatus: (id, status) => q.setTicket.run(status, id),
+    deleteTicket: (id) => Number(q.delTicket.run(id).changes),
     cleanup(now = Date.now()) {
       q.purgeTickets.run(now - 365 * DAY);
       db.prepare('DELETE FROM sessions WHERE expires_at < ?').run(now);

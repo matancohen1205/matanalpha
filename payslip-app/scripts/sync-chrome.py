@@ -43,6 +43,7 @@ FOOTER = '''<footer class="site-footer">
         <a href="/privacy.html">מדיניות פרטיות</a>
         <a href="/terms.html">תנאי שימוש</a>
         <a href="/accessibility.html">הצהרת נגישות</a>
+        <a href="/licenses.html">רישיונות</a>
       </nav>
     </div>
   </footer>'''

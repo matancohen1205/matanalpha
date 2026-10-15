@@ -27,7 +27,7 @@ const footer = between(index, '<footer class="site-footer">', '</footer>');
 const homeMain = between(index, '<main id="main">', '</main>');
 
 const LEGAL = ['privacy', 'terms', 'accessibility'];
-const TOOLS = ['calculator', 'credits', 'compare', 'pricing', 'whatsapp', 'about', 'contact', 'rights'];
+const TOOLS = ['calculator', 'credits', 'compare', 'pricing', 'whatsapp', 'about', 'contact', 'rights', 'licenses'];
 const VIEWS_ALL = LEGAL.concat(TOOLS);
 const ACCOUNT_VIEWS = ['login', 'signup'];
 const legal = LEGAL.map((n) => {

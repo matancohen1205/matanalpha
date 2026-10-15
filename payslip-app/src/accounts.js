@@ -4,7 +4,8 @@ const crypto = require('crypto');
 const express = require('express');
 const { sign, verify } = require('./billing');
 
-const SESSION_TTL_MS = 30 * 24 * 3600 * 1000;
+const SESSION_TTL_MS = 30 * 24 * 3600 * 1000; // תקרה מוחלטת לסשן
+const IDLE_MS = (Number(process.env.ACCOUNT_IDLE_MINUTES) || 120) * 60 * 1000; // ניתוק אחרי חוסר פעילות
 const MAX_VAULT_CHARS = 262_144; // 256KB של טקסט מוצפן
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60 * 1000;
@@ -63,6 +64,7 @@ function createAccounts({ store, mailer, mailFrom, secret, publicUrl, secure = f
     del: db.prepare('DELETE FROM accounts WHERE id = ?'),
     sessIns: db.prepare('INSERT INTO sessions (token_hash, account_id, created_at, expires_at) VALUES (?,?,?,?)'),
     sessGet: db.prepare('SELECT * FROM sessions WHERE token_hash = ? AND expires_at > ?'),
+    sessTouch: db.prepare('UPDATE sessions SET expires_at = ? WHERE token_hash = ?'),
     sessDel: db.prepare('DELETE FROM sessions WHERE token_hash = ?'),
     sessDelAll: db.prepare('DELETE FROM sessions WHERE account_id = ?'),
     vGet: db.prepare('SELECT version, blob, updated_at FROM vaults WHERE account_id = ?'),
@@ -84,13 +86,18 @@ function createAccounts({ store, mailer, mailFrom, secret, publicUrl, secure = f
   /* ---------- סשנים ---------- */
   function startSession(res, accId) {
     const token = crypto.randomBytes(32).toString('base64url');
-    q.sessIns.run(sha256(token), accId, now(), now() + SESSION_TTL_MS);
+    q.sessIns.run(sha256(token), accId, now(), now() + IDLE_MS);
     res.cookie(COOKIE, token, { httpOnly: true, sameSite: 'strict', secure, maxAge: SESSION_TTL_MS, path: '/' });
   }
   function sessionOf(req) {
     const tok = readCookie(req, COOKIE);
     if (!tok || !B64URL.test(tok) || tok.length > 64) return null;
     const s = q.sessGet.get(sha256(tok), now());
+    if (s) {
+      // סשן הזזה: כל פעילות מאריכה את התוקף ב-IDLE_MS, עד התקרה המוחלטת
+      const next = Math.min(Number(s.created_at) + SESSION_TTL_MS, now() + IDLE_MS);
+      if (next - Number(s.expires_at) > 60_000) q.sessTouch.run(next, sha256(tok));
+    }
     return s ? q.byId.get(s.account_id) : null;
   }
   function requireSession(req, res, next) {

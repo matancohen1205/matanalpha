@@ -39,6 +39,7 @@
         h('p', { class: 'ad-msg', text: t.message || '' }),
         h('div', { class: 'form-actions' }, [
           h('button', { class: 'btn btn-sm' + (closed ? ' btn-ghost' : ''), type: 'button', text: closed ? 'החזרה לחדשות' : 'סימון כטופל', onclick: function () { setStatus(t.id, closed ? 'new' : 'closed'); } }),
+          h('button', { class: 'btn btn-ghost btn-sm', type: 'button', text: 'מחיקה לצמיתות', onclick: function () { if (window.confirm('למחוק את הפנייה לצמיתות? לא ניתן לשחזר.')) removeTicket(t.id); } }),
         ]),
       ]));
     });
@@ -58,6 +59,14 @@
     api('POST', '/api/admin/tickets/' + id + '/status', { status: st }).then(function (r) {
       if (!r.ok) { status('העדכון נכשל.', true); return; }
       state.tickets.forEach(function (t) { if (t.id === id) t.status = st; });
+      render();
+    });
+  }
+
+  function removeTicket(id) {
+    api('DELETE', '/api/admin/tickets/' + id).then(function (r) {
+      if (!r.ok) { status('המחיקה נכשלה.', true); return; }
+      state.tickets = state.tickets.filter(function (t) { return t.id !== id; });
       render();
     });
   }
