@@ -1,6 +1,7 @@
 'use strict';
 
-const { createWhatsApp, createMetaClient, createDevClient } = require('../whatsapp');
+const { createWhatsApp } = require('../routes/whatsapp');
+const { createMetaClient, createDevClient } = require('../services/whatsapp');
 
 /** בוחר לקוח וואטסאפ: Meta אמיתי, לקוח פיתוח מקומי, או כלום בפרודקשן בלי הגדרה. */
 function pickWhatsAppClient(config) {
