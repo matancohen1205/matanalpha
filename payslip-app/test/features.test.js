@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const http = require('node:http');
 const TaxCore = require('../public/js/tax-core');
-const { compareSlips } = require('../src/compare');
+const { compareSlips } = require('../src/services/payslip/compare');
 const { sign, verify } = require('../src/services/billing/tokens');
 
 test('ברוטו->נטו: עקביות ושפיות', () => {
@@ -117,7 +117,7 @@ test('מנוי: חסימת Pro, הפעלה דרך Stripe מדומה, והשוו�
 
 /* ---------------- שירות לקוחות ---------------- */
 const ChatKB = require('../public/js/chat-kb');
-const { GLOSSARY } = require('../src/glossary');
+const { GLOSSARY } = require('../src/services/payslip/glossary');
 const { createSupport } = require('../src/routes/support');
 
 test('עוזר האתר: התאמת שאלות לכוונות ולמילון', () => {

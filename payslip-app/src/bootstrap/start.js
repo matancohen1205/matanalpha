@@ -1,6 +1,6 @@
 'use strict';
 
-const { ensureLangDir } = require('../extract');
+const { ensureLangDir } = require('../services/extraction/extract');
 const { startBackgroundJobs } = require('../jobs');
 const { SERVER } = require('../config/limits');
 

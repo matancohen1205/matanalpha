@@ -1,8 +1,8 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert');
-const { analyzePayslip } = require('../src/analyzer');
-const { sniffType } = require('../src/extract');
+const { analyzePayslip } = require('../src/services/payslip/analyzer');
+const { sniffType } = require('../src/services/extraction/extract');
 
 const SLIP = ['שכר יסוד 12,000.00', 'סה"כ ברוטו 15,126.00', 'מס הכנסה 1,480.00', 'פנסיה עובד 907.56', 'פנסיה מעסיק 983.00', 'שכר נטו 11,230.44'].join('\n');
 
@@ -27,7 +27,7 @@ test('בדיקת סוג קובץ לפי תוכן', () => {
 });
 
 test('סכום שלילי בתלוש נקרא כניכוי חיובי, וקיצורי קה"ש ודמי חופשה מזוהים', () => {
-  const { analyzePayslip } = require('../src/analyzer');
+  const { analyzePayslip } = require('../src/services/payslip/analyzer');
   const r = analyzePayslip('מס הכנסה\t\t\t-1,480.00\nקה"ש עובד 378.00\nקה"ש מעסיק 7.5% 900.00\nדמי חופשה 1,200.00');
   const by = Object.fromEntries(r.items.map((i) => [i.id, i.amount]));
   assert.strictEqual(by.income_tax, 1480);
@@ -68,7 +68,7 @@ test('נקודות שחרור: 36 חודשים מהחודש שאחרי השחר�
 });
 
 test('שורה עם סכום ש-OCR קרא כטקסט לועזי שגוי מופיעה כשורה שלא זוהתה ולא נזרקת בשקט', () => {
-  const { analyzePayslip } = require('../src/analyzer');
+  const { analyzePayslip } = require('../src/services/payslip/analyzer');
   const r = analyzePayslip('מס הכנסה 1,480.00\nDY 101 9,763.84');
   assert.ok(r.unknown.some((u) => /9,763\.84/.test(u.line)));
 });

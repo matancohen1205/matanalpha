@@ -1,6 +1,6 @@
 'use strict';
 
-const { runBackup } = require('../backup');
+const { runBackup } = require('../services/backup');
 const { DAY_MS } = require('../config/limits');
 
 /** מתזמן גיבוי יומי של המסד (ראשון דקה אחרי העלייה); לא רץ במסד זמני בזיכרון או כש-AUTO_BACKUP=0. */

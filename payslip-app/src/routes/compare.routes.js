@@ -1,7 +1,7 @@
 'use strict';
 
 const express = require('express');
-const { compareSlips } = require('../compare');
+const { compareSlips } = require('../services/payslip/compare');
 
 /** מחבר POST /compare: השוואת תלושים למנויי Pro בלבד, החישוב בשרת. */
 function mountCompare(api, { services }) {

@@ -14,7 +14,7 @@ const MAX_SIDE = 12_000;
 
 /** מכין תיקיית שפות מקומית (ללא הורדה מהאינטרנט בזמן ריצה) */
 function ensureLangDir() {
-  const dir = path.join(__dirname, '..', '.tessdata');
+  const dir = path.join(__dirname, '..', '..', '..', '.tessdata');
   fs.mkdirSync(dir, { recursive: true });
   for (const lang of ['heb', 'eng']) {
     const dest = path.join(dir, `${lang}.traineddata.gz`);

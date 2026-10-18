@@ -1,8 +1,8 @@
 'use strict';
 
 const { verify } = require('../billing/tokens');
-const { analyzePayslip } = require('../../analyzer');
-const { extractText } = require('../../extract');
+const { analyzePayslip } = require('../payslip/analyzer');
+const { extractText } = require('../extraction/extract');
 const { periodKey, toSnapshot, buildAlerts, buildReply } = require('./alerts');
 
 const DAY = 24 * 3600 * 1000;

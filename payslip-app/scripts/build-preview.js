@@ -61,9 +61,9 @@ for (const l of ['en', 'ru', 'ar']) I18N[l] = JSON.parse(fs.readFileSync(path.jo
 const shim = `
 (function () {
   var I18N = ${JSON.stringify(I18N)};
-  var G = (function () { var module = { exports: {} }; ${src('glossary.js')}\n return module.exports; })();
-  var A = (function () { var module = { exports: {} }; var require = function () { return G; }; ${src('analyzer.js')}\n return module.exports; })();
-  var C = (function () { var module = { exports: {} }; ${src('compare.js')}\n return module.exports; })();
+  var G = (function () { var module = { exports: {} }; ${src('services/payslip/glossary.js')}\n return module.exports; })();
+  var A = (function () { var module = { exports: {} }; var require = function () { return G; }; ${src('services/payslip/analyzer.js')}\n return module.exports; })();
+  var C = (function () { var module = { exports: {} }; ${src('services/payslip/compare.js')}\n return module.exports; })();
   var acct = { users: {}, current: null, vaults: {} };
   function accountApi(url, o) {
     var b = {}; try { b = o.body ? JSON.parse(o.body) : {}; } catch (e) {}

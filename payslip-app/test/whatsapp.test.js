@@ -6,7 +6,7 @@ const crypto = require('node:crypto');
 const { createStore } = require('../src/data/store');
 const { createEngine, buildAlerts } = require('../src/services/whatsapp');
 const { sign } = require('../src/services/billing/tokens');
-const { analyzePayslip } = require('../src/analyzer');
+const { analyzePayslip } = require('../src/services/payslip/analyzer');
 
 const SECRET = 'wa-test-secret';
 const DAY = 864e5;

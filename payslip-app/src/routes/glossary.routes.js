@@ -1,6 +1,6 @@
 'use strict';
 
-const { GLOSSARY } = require('../glossary');
+const { GLOSSARY } = require('../services/payslip/glossary');
 
 /** מחזיר רק את שדות המילון שהלקוח צריך (בלי ביטויי הזיהוי הפנימיים). */
 function toPublicEntries(glossary) {

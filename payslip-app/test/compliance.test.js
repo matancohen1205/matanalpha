@@ -107,7 +107,7 @@ test('אין שדות כרטיס אשראי במסד הנתונים: התשלו�
 
 test('גיבוי אוטומטי: עותק קריא, ושמירה של N אחרונים בלבד', () => {
   const { DatabaseSync } = require('node:sqlite');
-  const { runBackup } = require('../src/backup');
+  const { runBackup } = require('../src/services/backup');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bk-'));
   const db = new DatabaseSync(path.join(dir, 'app.db')); db.exec('CREATE TABLE t(x); INSERT INTO t VALUES (42)'); db.close();
   for (let i = 0; i < 5; i++) runBackup(path.join(dir, 'app.db'), 3, new Date(Date.UTC(2026, 0, 1 + i)));

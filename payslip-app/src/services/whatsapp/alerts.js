@@ -1,6 +1,6 @@
 'use strict';
 
-const { compareSlips } = require('../../compare');
+const { compareSlips } = require('../payslip/compare');
 
 const fmt = (n) => `${Number(n).toLocaleString('he-IL', { maximumFractionDigits: 0 })} ₪`;
 

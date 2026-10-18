@@ -2,8 +2,8 @@
 
 const express = require('express');
 const multer = require('multer');
-const { analyzePayslip } = require('../analyzer');
-const { extractText } = require('../extract');
+const { analyzePayslip } = require('../services/payslip/analyzer');
+const { extractText } = require('../services/extraction/extract');
 const { createConcurrencyGate } = require('../middleware/concurrency-gate');
 const { MAX_FILE_BYTES, MAX_TEXT_CHARS, MAX_CONCURRENT_JOBS } = require('../config/limits');
 const { ANALYZE_ERRORS } = require('../config/messages');

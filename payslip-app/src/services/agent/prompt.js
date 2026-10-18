@@ -1,6 +1,6 @@
 'use strict';
 
-const { GLOSSARY } = require('../../glossary');
+const { GLOSSARY } = require('../payslip/glossary');
 const { LINKS, PAGES, LANG_NAMES } = require('./links');
 
 /**
