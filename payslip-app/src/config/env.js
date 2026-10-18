@@ -71,6 +71,7 @@ function readConfig(env = process.env) {
       model: env.AGENT_MODEL || 'claude-haiku-4-5-20251001',
       dailyLimit: Number(env.AGENT_DAILY_LIMIT) || 2000,
     },
+    accountIdleMs: (Number(env.ACCOUNT_IDLE_MINUTES) || 120) * 60 * 1000,
     adminPassword: env.ADMIN_PASSWORD,
     securityContact: env.SECURITY_CONTACT || env.SUPPORT_EMAIL,
     backup: { enabled: env.AUTO_BACKUP !== '0', keep: Number(env.BACKUP_KEEP) || 7 },

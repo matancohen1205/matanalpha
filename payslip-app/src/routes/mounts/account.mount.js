@@ -1,6 +1,6 @@
 'use strict';
 
-const { limitWhen } = require('../middleware/rate-limits');
+const { limitWhen } = require('../../middleware/rate-limits');
 
 /** מחבר /account (חשבונות וכספת); כל POST מוגבל במגביל ההתחברות הנפרד. */
 function mountAccount(api, { services, limiters }) {

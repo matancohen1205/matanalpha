@@ -2,7 +2,7 @@
 
 const crypto = require('crypto');
 const express = require('express');
-const { sign, verify } = require('./billing');
+const { sign, verify } = require('./services/billing/tokens');
 const { analyzePayslip } = require('./analyzer');
 const { extractText } = require('./extract');
 const { compareSlips } = require('./compare');

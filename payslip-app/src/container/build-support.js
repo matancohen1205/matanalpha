@@ -1,6 +1,6 @@
 'use strict';
 
-const { createSupport } = require('../support');
+const { createSupport } = require('../routes/support');
 
 /** בונה את שירות פניות הלקוחות (טופס יצירת קשר ופרטי קשר ציבוריים). */
 function buildSupport({ config, store, mailer }, over = {}) {

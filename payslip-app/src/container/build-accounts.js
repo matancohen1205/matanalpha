@@ -1,6 +1,6 @@
 'use strict';
 
-const { createAccounts } = require('../accounts');
+const { createAccounts } = require('../routes/account');
 
 /** בונה את שירות החשבונות ומחבר אותו למנוי (קישור מנוי לחשבון) דרך פונקציות lazy. */
 function buildAccounts({ config, store, tokenSecret, billingConfig, billing }, over = {}) {
@@ -11,6 +11,7 @@ function buildAccounts({ config, store, tokenSecret, billingConfig, billing }, o
     secret: tokenSecret,
     publicUrl: billingConfig.publicUrl,
     secure: config.isProd,
+    idleMs: config.accountIdleMs,
     devEndpoints: config.devEndpoints,
     setProCookie: (res, cid) => billing.current.setProCookie(res, cid),
     isProCid: (cid) => billing.current.isProCid(cid),

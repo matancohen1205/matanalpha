@@ -1,6 +1,6 @@
 'use strict';
 
-const { createAgent } = require('../agent');
+const { createAgent } = require('../routes/agent');
 
 /** בונה את סוכן הצ'אט (Claude); בלי מפתח הוא כבוי ומחזיר 503. */
 function buildAgent({ config, billingConfig }, over = {}) {

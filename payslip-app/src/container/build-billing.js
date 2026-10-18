@@ -1,6 +1,6 @@
 'use strict';
 
-const { createBilling } = require('../billing');
+const { createBilling } = require('../routes/billing');
 
 /** מרכיב את הגדרות המנוי והתשלום מתוך ההגדרות הכלליות והתלויות המשותפות. */
 function buildBillingConfig(config, { store, tokenSecret, mailer }) {

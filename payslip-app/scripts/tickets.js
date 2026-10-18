@@ -4,7 +4,7 @@
  *   DB_PATH=/data/app.db DATA_KEY=<hex> node scripts/tickets.js [כמות]
  *   node scripts/tickets.js close 12      סימון פנייה כטופלה
  */
-const { createStore } = require('../src/store');
+const { createStore } = require('../src/data/store');
 const path = process.env.DB_PATH || process.env.WA_DB_PATH;
 const key = process.env.DATA_KEY || process.env.WA_DATA_KEY;
 if (!path || !key) {

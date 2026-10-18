@@ -2,7 +2,7 @@
 
 const { readConfig, resolveTokenSecret } = require('../config/env');
 const { assertSafeConfig } = require('../config/guards');
-const { createStore } = require('../store');
+const { createStore } = require('../data/store');
 const { createSwappable } = require('./swappable');
 const { buildBillingConfig, buildBilling } = require('./build-billing');
 const { buildWhatsApp } = require('./build-whatsapp');

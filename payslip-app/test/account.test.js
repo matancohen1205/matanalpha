@@ -168,7 +168,7 @@ test('שינוי סיסמה, מחיקת חשבון, והגנות CSRF', async ()
 });
 
 test('קישור מנוי Pro לחשבון משחזר Pro בהתחברות', async () => {
-  const { sign } = require('../src/billing');
+  const { sign } = require('../src/services/billing/tokens');
   const stripe = { subscriptions: { list: async () => ({ data: [{ status: 'active' }] }) }, customers: { list: async () => ({ data: [] }) } };
   app.setBilling({ stripe, priceId: 'p', secret: 'test-secret' });
   app.setAccounts({});

@@ -1,6 +1,6 @@
 'use strict';
 
-const { limitWhen } = require('../middleware/rate-limits');
+const { limitWhen } = require('../../middleware/rate-limits');
 
 /** מחבר /billing; כל POST מוגבל בקצב כבד, חוץ מנתיב ההפעלה לפיתוח. */
 function mountBilling(api, { services, limiters }) {

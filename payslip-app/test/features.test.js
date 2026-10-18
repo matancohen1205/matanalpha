@@ -4,7 +4,7 @@ const assert = require('node:assert');
 const http = require('node:http');
 const TaxCore = require('../public/js/tax-core');
 const { compareSlips } = require('../src/compare');
-const { sign, verify } = require('../src/billing');
+const { sign, verify } = require('../src/services/billing/tokens');
 
 test('ברוטו->נטו: עקביות ושפיות', () => {
   const r = TaxCore.grossToNet({ gross: 15000, creditPoints: 2.25, pensionPct: 6 });
@@ -118,7 +118,7 @@ test('מנוי: חסימת Pro, הפעלה דרך Stripe מדומה, והשוו�
 /* ---------------- שירות לקוחות ---------------- */
 const ChatKB = require('../public/js/chat-kb');
 const { GLOSSARY } = require('../src/glossary');
-const { createSupport } = require('../src/support');
+const { createSupport } = require('../src/routes/support');
 
 test('עוזר האתר: התאמת שאלות לכוונות ולמילון', () => {
   const intent = (q) => { const r = ChatKB.match(q, GLOSSARY); return r.type === 'kb' ? r.intent.id : r.type === 'glossary' ? 'glossary:' + r.entry.id : 'none'; };
@@ -135,7 +135,7 @@ test('עוזר האתר: התאמת שאלות לכוונות ולמילון', (
 
 test('טופס יצירת קשר: ולידציה, מלכודת בוטים, שמירה מוצפנת ומייל', async () => {
   const app = require('express')();
-  const { createStore } = require('../src/store');
+  const { createStore } = require('../src/data/store');
   const store = createStore({ key: require('crypto').randomBytes(32).toString('hex') });
   const mails = [];
   const { router } = createSupport({ store, mailer: { sendMail: async (m) => mails.push(m) }, config: { supportEmail: 'help@site.test', supportHours: 'א-ה 9:00-17:00' } });

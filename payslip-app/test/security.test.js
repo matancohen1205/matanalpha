@@ -6,7 +6,7 @@ const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
-const { sign } = require('../src/billing');
+const { sign } = require('../src/services/billing/tokens');
 const { assertSafeMediaUrl } = require('../src/whatsapp');
 
 process.env.RATE_LIMIT_HEAVY = '60'; // הבדיקות שולחות הרבה בקשות; בדיקת ההגבלה בסוף

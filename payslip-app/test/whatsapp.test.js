@@ -3,9 +3,9 @@ const test = require('node:test');
 const assert = require('node:assert');
 const http = require('node:http');
 const crypto = require('node:crypto');
-const { createStore } = require('../src/store');
+const { createStore } = require('../src/data/store');
 const { createEngine, buildAlerts } = require('../src/whatsapp');
-const { sign } = require('../src/billing');
+const { sign } = require('../src/services/billing/tokens');
 const { analyzePayslip } = require('../src/analyzer');
 
 const SECRET = 'wa-test-secret';

@@ -2,12 +2,12 @@
 
 const express = require('express');
 const { createRateLimiters } = require('../middleware/rate-limits');
-const { mountBilling } = require('./billing.routes');
-const { mountAccount } = require('./account.routes');
-const { mountWhatsApp } = require('./whatsapp.routes');
-const { mountAgent } = require('./agent.routes');
-const { mountAdmin } = require('./admin.routes');
-const { mountSupport } = require('./support.routes');
+const { mountBilling } = require('./mounts/billing.mount');
+const { mountAccount } = require('./mounts/account.mount');
+const { mountWhatsApp } = require('./mounts/whatsapp.mount');
+const { mountAgent } = require('./mounts/agent.mount');
+const { mountAdmin } = require('./mounts/admin.mount');
+const { mountSupport } = require('./mounts/support.mount');
 const { mountAnalyze } = require('./analyze.routes');
 const { mountGlossary } = require('./glossary.routes');
 const { mountCompare } = require('./compare.routes');
